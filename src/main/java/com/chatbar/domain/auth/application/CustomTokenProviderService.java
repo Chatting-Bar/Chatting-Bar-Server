@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 
+
+//JWT를 생성하고 검증하는 컴포넌트.
 @Slf4j
 @Service
 public class CustomTokenProviderService {
@@ -34,6 +36,9 @@ public class CustomTokenProviderService {
         Date accessTokenExpiresIn = new Date(now.getTime() + OAuth2Config.getAuth().getAccessTokenExpirationMsec());
 
         String secretKey = OAuth2Config.getAuth().getTokenSecret();
+        if (secretKey == null) {
+            throw new IllegalArgumentException("토큰이 null입니다.");
+        }
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         Key key = Keys.hmacShaKeyFor(keyBytes);
 
@@ -117,7 +122,7 @@ public class CustomTokenProviderService {
 
     public boolean validateToken(String token) {
         try {
-            //log.info("bearerToken = {} \n oAuth2Config.getAuth()={}", token, oAuth2Config.getAuth().getTokenSecret());
+            log.info("bearerToken = {} \n oAuth2Config.getAuth()={}", token, OAuth2Config.getAuth().getTokenSecret());
             Jwts.parserBuilder().setSigningKey(OAuth2Config.getAuth().getTokenSecret()).build().parseClaimsJws(token);
             return true;
         } catch (SignatureException ex) {

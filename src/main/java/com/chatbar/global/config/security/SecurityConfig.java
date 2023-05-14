@@ -41,17 +41,10 @@ public class SecurityConfig {
     private final CustomSimpleUrlAuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     private final CustomAuthorizationRequestRepository customAuthorizationRequestRepository;
 
+    //암호화에 필요한 PasswordEncoder를 Bean 등록한다.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        // h2-console 사용 및 resources 접근 허용 설정
-        return (web) -> web.ignoring()
-                .requestMatchers(PathRequest.toH2Console())
-                .requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
 
 
@@ -70,6 +63,7 @@ public class SecurityConfig {
         return authenticationProvider;
     }
 
+    //AuthenticationManager를 Bean 등록한다.
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -95,11 +89,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests()
                     .requestMatchers("/", "/healthcheck", "/error", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html", "/**/*.css", "/**/*.js")
                         .permitAll()
-                    .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**")
-                        .permitAll()
-                    .requestMatchers("/login/**", "/oauth/**", "/oauth/**")
-                        .permitAll()
-                    .requestMatchers("/blog/**")
+                    .requestMatchers("/auth/**")
                         .permitAll()
                     .anyRequest()
                         .authenticated()

@@ -1,6 +1,5 @@
 package com.chatbar.domain.auth.application;
 
-import com.amazonaws.Response;
 import com.chatbar.domain.auth.domain.Token;
 import com.chatbar.domain.auth.domain.repository.TokenRepository;
 import com.chatbar.domain.auth.dto.*;
@@ -10,6 +9,7 @@ import com.chatbar.domain.user.domain.repository.UserRepository;
 import com.chatbar.global.DefaultAssert;
 import com.chatbar.global.payload.ApiResponse;
 import com.chatbar.global.payload.Message;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -46,7 +46,7 @@ public class AuthService {
         User user = User.builder()
                 .nickname(signUpReq.getNickname())
                 .email(signUpReq.getEmail())
-                .password(signUpReq.getPassword())
+                .password(passwordEncoder.encode(signUpReq.getPassword()))
                 .role(Role.USER)
                 .build();
 
@@ -110,6 +110,35 @@ public class AuthService {
         ApiResponse apiResponse = ApiResponse.builder()
                 .check(true)
                 .information(Message.builder().message("로그아웃 되었습니다.").build())
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Transactional
+    public ResponseEntity<?> refresh(RefreshTokenReq tokenRefreshRequest) {
+
+        Optional<Token> token = tokenRepository.findByRefreshToken(tokenRefreshRequest.getRefreshToken());
+        DefaultAssert.isTrue(token.isPresent(), "다시 로그인 해주세요.");
+        Authentication authentication = customTokenProviderService.getAuthenticationByEmail(token.get().getUserEmail());
+
+        TokenMapping tokenMapping;
+
+        try {
+            Long expirationTime = customTokenProviderService.getExpiration(tokenRefreshRequest.getRefreshToken());
+            tokenMapping = customTokenProviderService.refreshToken(authentication, token.get().getRefreshToken());
+        } catch (ExpiredJwtException ex) {
+            tokenMapping = customTokenProviderService.createToken(authentication);
+            token.get().updateRefreshToken(tokenMapping.getRefreshToken());
+        }
+
+        Token updateToken = token.get().updateRefreshToken(tokenMapping.getRefreshToken());
+
+        AuthRes authResponse = AuthRes.builder().accessToken(tokenMapping.getAccessToken()).refreshToken(updateToken.getRefreshToken()).build();
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(authResponse)
                 .build();
 
         return ResponseEntity.ok(apiResponse);

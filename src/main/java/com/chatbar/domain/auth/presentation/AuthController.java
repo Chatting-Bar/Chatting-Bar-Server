@@ -45,4 +45,12 @@ public class AuthController {
 
         return authService.signOut(refreshTokenReq);
     }
+
+    //refresh
+    @PostMapping(value = "/refresh")
+    public ResponseEntity<?> refresh(
+             @Valid @RequestBody RefreshTokenReq tokenRefreshRequest){
+
+        return authService.refresh(tokenRefreshRequest);
+    }
 }
