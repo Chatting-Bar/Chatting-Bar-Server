@@ -1,7 +1,8 @@
 package com.chatbar.domain.chatroom.domain;
 
-import com.chatbar.domain.Category;
 import com.chatbar.domain.common.BaseEntity;
+import com.chatbar.domain.common.Category;
+import com.chatbar.domain.user.domain.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -21,6 +22,9 @@ public class ChatRoom extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User host;
 
     @NotNull
     private String name;
@@ -42,8 +46,9 @@ public class ChatRoom extends BaseEntity {
     private String password;
 
     @Builder
-    public ChatRoom(Long id, String name, String desc, EnumSet<Category> categories, LocalDateTime open, LocalDateTime close, int max, int current, Boolean isPrivate, String password){
+    public ChatRoom(Long id, User host, String name, String desc, EnumSet<Category> categories, LocalDateTime open, LocalDateTime close, int max, int current, Boolean isPrivate, String password){
         this.id = id;
+        this.host = host;
         this.name = name;
         this.desc = desc;
         this.categories = categories;

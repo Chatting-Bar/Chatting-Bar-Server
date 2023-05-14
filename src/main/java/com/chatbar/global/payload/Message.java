@@ -1,4 +1,4 @@
-package com.rom.global.payload;
+package com.chatbar.global.payload;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

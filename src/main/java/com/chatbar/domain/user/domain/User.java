@@ -1,7 +1,7 @@
 package com.chatbar.domain.user.domain;
 
-import com.chatbar.domain.Category;
 import com.chatbar.domain.common.BaseEntity;
+import com.chatbar.domain.common.Category;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -39,14 +39,26 @@ public class User extends BaseEntity {
 
     private EnumSet<Category> categories = EnumSet.noneOf(Category.class);
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private Provider provider;
+
+    private String providerId;
+
     @Builder
-    public User(Long id, String nickname, String email, String password, String profileImg, EnumSet<Category> categories){
+    public User(Long id, String nickname, String email, String password, String profileImg, EnumSet<Category> categories, Role role, Provider provider, String providerId){
         this.id = id;
         this.nickname = nickname;
         this.email = email;
         this.password = password;
         this.profileImg = profileImg;
         this.categories = categories;
+        this.role = role;
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     public void updateNickname(String nickname){this.nickname = nickname;}
