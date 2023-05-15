@@ -1,4 +1,4 @@
-package com.chatbar.domain;
+package com.chatbar.domain.common;
 
 public enum Category {
     SPORT, DRAMA, MOVIE, STUDY, GAME

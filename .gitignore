@@ -36,7 +36,7 @@ out/
 ### VS Code ###
 .vscode/
 
-/src/main/resources/application.properties
+
 /src/main/resources/application.yml
 /src/main/resources/database/application-database.yml
-/src/main/resources/auth/application-auth.yml
+/src/main/resources/oauth/application-oauth.yml
