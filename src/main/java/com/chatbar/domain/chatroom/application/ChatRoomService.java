@@ -5,6 +5,8 @@ import com.chatbar.domain.chatroom.domain.UserChatRoom;
 import com.chatbar.domain.chatroom.domain.repository.ChatRoomRepository;
 import com.chatbar.domain.chatroom.domain.repository.UserChatRoomRepository;
 import com.chatbar.domain.chatroom.dto.CreateRoomReq;
+import com.chatbar.domain.chatroom.dto.EnterRoomReq;
+import com.chatbar.domain.chatroom.dto.ResultRoomListRes;
 import com.chatbar.domain.chatroom.dto.RoomListRes;
 import com.chatbar.domain.user.domain.User;
 import com.chatbar.domain.user.domain.repository.UserRepository;
@@ -16,20 +18,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class ChatRoomService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    private ChatRoomRepository chatRoomRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
-    private UserChatRoomRepository userChatRoomRepository;
+    private final UserChatRoomRepository userChatRoomRepository;
 
     //방 만들기
     @Transactional
@@ -40,6 +46,7 @@ public class ChatRoomService {
 
         ChatRoom chatRoom = ChatRoom.builder()
                 .name(createRoomReq.getName())
+                .host(user.get())
                 .desc(createRoomReq.getDesc())
                 .categories(createRoomReq.getCategories())
                 .open(createRoomReq.getOpenTime())
@@ -56,11 +63,65 @@ public class ChatRoomService {
 
         chatRoomRepository.save(chatRoom);
 
+        // 방 생성 자체가 본인이 방장으로 참여한 것이기 때문에 userChatRoomRepository에도 추가해준다.
         userChatRoomRepository.save(userChatRoom);
 
         ApiResponse apiResponse = ApiResponse.builder()
                 .check(true)
                 .information(Message.builder().message("방이 생성되었습니다.").build())
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //방 입장
+    @Transactional
+    public ResponseEntity<?> enterChatRoom(UserPrincipal userPrincipal, EnterRoomReq enterRoomReq) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "올바르지 않은 유저입니다.");
+
+        Optional<ChatRoom> chatRoom = chatRoomRepository.findById(enterRoomReq.getId());
+        DefaultAssert.isTrue(chatRoom.isPresent(), "올바르지 않은 채팅방입니다.");
+
+        chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() + 1);
+        DefaultAssert.isTrue(!chatRoom.get().isFull(), "채팅방 정원이 가득 찼습니다.");
+
+        UserChatRoom userChatRoom = UserChatRoom.builder()
+                .user(user.get())
+                .chatRoom(chatRoom.get())
+                .build();
+
+        userChatRoomRepository.save(userChatRoom);
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(Message.builder().message("방에 입장되었습니다.").build())
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //방 퇴장
+    @Transactional
+    public ResponseEntity<?> exitChatRoom(UserPrincipal userPrincipal, Long roomId) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId);
+        DefaultAssert.isTrue(chatRoom.isPresent(), "올바르지 않은 채팅방 ID입니다.");
+
+        Optional<UserChatRoom> userChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
+        DefaultAssert.isTrue(userChatRoom.isPresent(), "유저채팅방이 올바르지 않습니다.");
+
+        userChatRoomRepository.delete(userChatRoom.get());
+
+        chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() - 1);
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(Message.builder().message("방을 퇴장했습니다.").build())
                 .build();
 
         return ResponseEntity.ok(apiResponse);
@@ -78,7 +139,7 @@ public class ChatRoomService {
                 chatRoom -> RoomListRes.builder()
                         .id(chatRoom.getId())
                         .name(chatRoom.getName())
-                        .host(chatRoom.getHost())
+                        .hostName(chatRoom.getHostName())
                         .open(chatRoom.getOpenTime())
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
@@ -92,6 +153,46 @@ public class ChatRoomService {
                 .build();
 
         return ResponseEntity.ok(apiResponse);
+    }
+
+    //방 검색 -> 호스트 이름과 메뉴 이름으로 검색할 수 있음.
+    public ResponseEntity<?> findChatRoomByMenuAndHost(UserPrincipal userPrincipal, String search) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        List<ChatRoom> listByhost = chatRoomRepository.findAllByHostName(search);
+
+        List<ChatRoom> listByName = chatRoomRepository.findAllByName(search);
+
+        List<ChatRoom> chatRoomList = Stream.of(listByhost, listByName)
+                .flatMap(Collection::stream)
+                .toList();
+
+        List<RoomListRes> roomListRes = chatRoomList.stream().map(
+                chatRoom -> RoomListRes.builder()
+                        .id(chatRoom.getId())
+                        .name(chatRoom.getName())
+                        .hostName(chatRoom.getHostName())
+                        .open(chatRoom.getOpenTime())
+                        .close(chatRoom.getCloseTime())
+                        .current(chatRoom.getCurrentParticipant())
+                        .max(chatRoom.getMaxParticipant())
+                        .build()
+        ).toList();
+
+        ResultRoomListRes resultRoomListRes = ResultRoomListRes.builder()
+                .searchWord(search)
+                .data(roomListRes)
+                .build();
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(resultRoomListRes)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+
     }
 
 }

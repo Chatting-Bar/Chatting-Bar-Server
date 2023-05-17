@@ -13,18 +13,19 @@ public class RoomListRes {
 
     private String name;
 
+    private String hostName;
+
     private String participant;
 
     private String time;
 
-    private User host;
 
     @Builder
-    public RoomListRes(Long id, String name, int current, int max, LocalDateTime open, LocalDateTime close, User host) {
+    public RoomListRes(Long id, String name, String hostName, int current, int max, LocalDateTime open, LocalDateTime close) {
         this.id = id;
         this.name = name;
+        this.hostName = hostName;
         this.participant = current + " / " + max;
         this.time = open + " ~ " + close;
-        this.host = host;
     }
 }
