@@ -39,12 +39,8 @@ public class ChatRoom extends BaseEntity {
     @Nullable
     private EnumSet<Category> categories = EnumSet.noneOf(Category.class);
 
-    @Nullable
-    @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
     private LocalDateTime openTime;
 
-    @Nullable
-    @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
     private LocalDateTime closeTime;
 
     private int maxParticipant = 16;

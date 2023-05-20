@@ -54,6 +54,7 @@ public class ChatRoomController {
         return chatRoomService.findChatRoom(userPrincipal);
     }
 
+    //방 검색
     @GetMapping("/{search}")
     public ResponseEntity<?> searchChatRoom(
             @CurrentUser UserPrincipal userPrincipal,
