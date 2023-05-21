@@ -6,6 +6,7 @@ import com.chatbar.domain.chatroom.dto.EnterRoomReq;
 import com.chatbar.domain.user.domain.User;
 import com.chatbar.global.config.security.token.CurrentUser;
 import com.chatbar.global.config.security.token.UserPrincipal;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
@@ -24,7 +25,7 @@ public class ChatRoomController {
     public ResponseEntity<?> createChatRoom(
             @CurrentUser UserPrincipal userPrincipal,
             @Valid @RequestBody CreateRoomReq createRoomReq
-    ){
+    ) throws JsonProcessingException {
         return chatRoomService.createChatRoom(userPrincipal, createRoomReq);
     }
 
@@ -54,6 +55,7 @@ public class ChatRoomController {
         return chatRoomService.findChatRoom(userPrincipal);
     }
 
+    //방 검색
     @GetMapping("/{search}")
     public ResponseEntity<?> searchChatRoom(
             @CurrentUser UserPrincipal userPrincipal,

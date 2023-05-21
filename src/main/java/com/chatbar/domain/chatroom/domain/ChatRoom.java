@@ -15,7 +15,9 @@ import org.hibernate.annotations.Where;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -37,14 +39,11 @@ public class ChatRoom extends BaseEntity {
     private String desc;
 
     @Nullable
+    @Lob
     private EnumSet<Category> categories = EnumSet.noneOf(Category.class);
 
-    @Nullable
-    @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
     private LocalDateTime openTime;
 
-    @Nullable
-    @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
     private LocalDateTime closeTime;
 
     private int maxParticipant = 16;
