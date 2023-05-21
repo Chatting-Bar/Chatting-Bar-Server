@@ -8,22 +8,21 @@ import com.chatbar.domain.chatroom.dto.CreateRoomReq;
 import com.chatbar.domain.chatroom.dto.EnterRoomReq;
 import com.chatbar.domain.chatroom.dto.ResultRoomListRes;
 import com.chatbar.domain.chatroom.dto.RoomListRes;
+import com.chatbar.domain.common.Category;
 import com.chatbar.domain.user.domain.User;
 import com.chatbar.domain.user.domain.repository.UserRepository;
 import com.chatbar.global.DefaultAssert;
 import com.chatbar.global.config.security.token.UserPrincipal;
 import com.chatbar.global.payload.ApiResponse;
 import com.chatbar.global.payload.Message;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
@@ -39,7 +38,7 @@ public class ChatRoomService {
 
     //방 만들기
     @Transactional
-    public ResponseEntity<?> createChatRoom(UserPrincipal userPrincipal, CreateRoomReq createRoomReq) {
+    public ResponseEntity<?> createChatRoom(UserPrincipal userPrincipal, CreateRoomReq createRoomReq) throws JsonProcessingException {
 
         Optional<User> user = userRepository.findById(userPrincipal.getId());
         DefaultAssert.isTrue(user.isPresent(), "올바르지 않은 유저입니다.");
@@ -48,7 +47,7 @@ public class ChatRoomService {
                 .name(createRoomReq.getName())
                 .host(user.get())
                 .desc(createRoomReq.getDesc())
-                .categories(createRoomReq.getCategories())
+                .categories(jsonToEnumSet(createRoomReq.getCategories()))
                 .open(createRoomReq.getOpenTime())
                 .close(createRoomReq.getCloseTime())
                 .max(createRoomReq.getMaxParticipant())
@@ -62,6 +61,7 @@ public class ChatRoomService {
                 .build();
 
         chatRoomRepository.save(chatRoom);
+        chatRoom.updateCurrentParticipant(1);
 
         // 방 생성 자체가 본인이 방장으로 참여한 것이기 때문에 userChatRoomRepository에도 추가해준다.
         userChatRoomRepository.save(userChatRoom);
@@ -86,6 +86,10 @@ public class ChatRoomService {
 
         chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() + 1);
         DefaultAssert.isTrue(!chatRoom.get().isFull(), "채팅방 정원이 가득 찼습니다.");
+
+        //이미 입장해있는 경우 예외처리
+        Optional<UserChatRoom> test = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
+        DefaultAssert.isTrue(test.isEmpty(), "이미 입장해있는 채팅방입니다.");
 
         UserChatRoom userChatRoom = UserChatRoom.builder()
                 .user(user.get())
@@ -144,6 +148,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
+                        .categories(chatRoom.getCategories())
                         .build()
         ).toList();
 
@@ -178,6 +183,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
+                        .categories(chatRoom.getCategories())
                         .build()
         ).toList();
 
@@ -195,4 +201,19 @@ public class ChatRoomService {
 
     }
 
+    // JSON 문자열 -> EnumSet 직렬화 메소드
+    public EnumSet<Category> jsonToEnumSet(String[] categories){
+
+        EnumSet<Category> temp = EnumSet.noneOf(Category.class); // 빈 EnumSet 생성
+
+        for (String category : categories) {
+            try {
+                Category enumValue = Category.valueOf(category); // 문자열을 해당 Enum 값으로 변환
+                temp.add(enumValue); // EnumSet에 추가
+            } catch (IllegalArgumentException e) {
+                // 잘못된 값이라면 예외 처리 또는 무시할 수 있습니다.
+            }
+        }
+        return temp;
+    }
 }

@@ -1,13 +1,13 @@
 package com.chatbar.domain.chatroom.dto;
 
 import com.chatbar.domain.common.Category;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.EnumSet;
 
 @Data
@@ -18,7 +18,8 @@ public class CreateRoomReq {
 
     private String desc;
 
-    private EnumSet<Category> categories;
+    @Nullable
+    private String[] categories;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime openTime;
