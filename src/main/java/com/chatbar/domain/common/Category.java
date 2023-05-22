@@ -1,7 +1,7 @@
 package com.chatbar.domain.common;
 
 public enum Category {
-    PHOTHOG("사진"),
+    PHOTO("사진"),
     VOLUNTEERING("봉사"),
     COSMETIC("화장"),
     OUTDOOR("아웃도어"),

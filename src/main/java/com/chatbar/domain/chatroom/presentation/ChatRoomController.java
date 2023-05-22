@@ -47,6 +47,26 @@ public class ChatRoomController {
         return chatRoomService.exitChatRoom(userPrincipal, roomId);
     }
 
+    //방 강퇴
+    @DeleteMapping("")
+    public ResponseEntity<?> kickOutChatRoom(
+            @CurrentUser UserPrincipal userPrincipal,
+            @RequestParam("roomId") Long roomId,
+            @RequestParam("userId") Long userId
+    ) {
+        return chatRoomService.kickOutChatRoom(userPrincipal, roomId, userId);
+    }
+
+    //유저 얼리기
+    @PatchMapping("")
+    public ResponseEntity<?> frozenUser(
+            @CurrentUser UserPrincipal userPrincipal,
+            @RequestParam("roomId") Long roomId,
+            @RequestParam("userId") Long userId
+    ) {
+        return chatRoomService.frozenUser(userPrincipal, roomId, userId);
+    }
+
     //방 조회
     @GetMapping
     public ResponseEntity<?> findChatRoom(

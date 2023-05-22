@@ -13,11 +13,14 @@ import com.chatbar.domain.user.domain.User;
 import com.chatbar.domain.user.domain.repository.UserRepository;
 import com.chatbar.global.DefaultAssert;
 import com.chatbar.global.config.security.token.UserPrincipal;
+import com.chatbar.global.error.DefaultException;
 import com.chatbar.global.payload.ApiResponse;
+import com.chatbar.global.payload.ErrorCode;
 import com.chatbar.global.payload.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +61,8 @@ public class ChatRoomService {
         UserChatRoom userChatRoom = UserChatRoom.builder()
                 .user(user.get())
                 .chatRoom(chatRoom)
+                .userRole(UserChatRoom.Role.valueOf("HOST")) // 방 생성 시 유저는 방장임
+                .isFrozen(false)
                 .build();
 
         chatRoomRepository.save(chatRoom);
@@ -94,6 +99,8 @@ public class ChatRoomService {
         UserChatRoom userChatRoom = UserChatRoom.builder()
                 .user(user.get())
                 .chatRoom(chatRoom.get())
+                .userRole(UserChatRoom.Role.valueOf("GUEST"))  // 방 입장 시 유저는 손님임
+                .isFrozen(false)
                 .build();
 
         userChatRoomRepository.save(userChatRoom);
@@ -106,7 +113,7 @@ public class ChatRoomService {
         return ResponseEntity.ok(apiResponse);
     }
 
-    //방 퇴장
+    //방 퇴장 (본인이 직접 나가는 것)
     @Transactional
     public ResponseEntity<?> exitChatRoom(UserPrincipal userPrincipal, Long roomId) {
 
@@ -126,6 +133,76 @@ public class ChatRoomService {
         ApiResponse apiResponse = ApiResponse.builder()
                 .check(true)
                 .information(Message.builder().message("방을 퇴장했습니다.").build())
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //방 강퇴 (방장만 가능)
+    @Transactional
+    public ResponseEntity<?> kickOutChatRoom(UserPrincipal userPrincipal, Long roomId, Long userId){
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId);
+        DefaultAssert.isTrue(chatRoom.isPresent(),"채팅방이 올바르지 않습니다.");
+
+        Optional<User> kickUser = userRepository.findById(userId);
+        DefaultAssert.isTrue(kickUser.isPresent(), "강퇴할 유저가 올바르지 않습니다.");
+
+        Optional<UserChatRoom> userChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
+        DefaultAssert.isTrue(userChatRoom.isPresent(), "유저 채팅방이 올바르지 않습니다.");
+
+        Optional<UserChatRoom> kickUserChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(kickUser.get(), chatRoom.get());
+        DefaultAssert.isTrue(kickUserChatRoom.isPresent(), "강퇴 유저 채팅방이 올바르지 않습니다.");
+
+        //유저가 방장인 경우에만 강퇴 허용
+        if (userChatRoom.get().getUserRole() == UserChatRoom.Role.HOST) {
+            userChatRoomRepository.delete(kickUserChatRoom.get());
+        }else{
+            throw new DefaultException(ErrorCode.INVALID_PARAMETER, "유저가 방장이 아닙니다.");
+        }
+
+        chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() - 1);
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(Message.builder().message("유저를 강퇴했습니다.").build())
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //유저 얼리기
+    @Transactional
+    public ResponseEntity<?> frozenUser(UserPrincipal userPrincipal, Long roomId, Long userId) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId);
+        DefaultAssert.isTrue(chatRoom.isPresent(),"채팅방이 올바르지 않습니다.");
+
+        Optional<User> kickUser = userRepository.findById(userId);
+        DefaultAssert.isTrue(kickUser.isPresent(), "얼릴 유저가 올바르지 않습니다.");
+
+        Optional<UserChatRoom> userChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
+        DefaultAssert.isTrue(userChatRoom.isPresent(), "유저 채팅방이 올바르지 않습니다.");
+
+        Optional<UserChatRoom> kickUserChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(kickUser.get(), chatRoom.get());
+        DefaultAssert.isTrue(kickUserChatRoom.isPresent(), "얼릴 유저 채팅방이 올바르지 않습니다.");
+
+        //유저가 방장인 경우에만 얼리기 허용
+        if (userChatRoom.get().getUserRole() == UserChatRoom.Role.HOST) {
+            kickUserChatRoom.get().updateIsFrozen(true);
+        }else{
+            throw new DefaultException(ErrorCode.INVALID_PARAMETER, "유저가 방장이 아닙니다.");
+        }
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(Message.builder().message("유저를 얼렸습니다.").build())
                 .build();
 
         return ResponseEntity.ok(apiResponse);
