@@ -18,9 +18,8 @@ import com.chatbar.global.payload.ApiResponse;
 import com.chatbar.global.payload.ErrorCode;
 import com.chatbar.global.payload.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -235,6 +234,97 @@ public class ChatRoomService {
                 .build();
 
         return ResponseEntity.ok(apiResponse);
+    }
+
+    //방 조회 (최신 순)
+    public ResponseEntity<?> findLatestChatRoom(UserPrincipal userPrincipal) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        List<ChatRoom> chatRoomList = chatRoomRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")); //만들어진 순 조회
+
+        List<RoomListRes> roomListRes = chatRoomList.stream().map(
+                chatRoom -> RoomListRes.builder()
+                        .id(chatRoom.getId())
+                        .name(chatRoom.getName())
+                        .hostName(chatRoom.getHostName())
+                        .open(chatRoom.getOpenTime())
+                        .close(chatRoom.getCloseTime())
+                        .current(chatRoom.getCurrentParticipant())
+                        .max(chatRoom.getMaxParticipant())
+                        .categories(chatRoom.getCategories())
+                        .build()
+        ).toList();
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(roomListRes)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //방 조회 (카테고리 추천순)
+    public ResponseEntity<?> findRecommendedChatRoom(UserPrincipal userPrincipal) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        List<ChatRoom> chatRoomList = chatRoomRepository.findAll();
+
+        //user의 카테고리와 비교해 같은 카테고리가 많은 순  정렬
+        chatRoomList.sort(Comparator.comparingInt(entity -> calculateSimilarity(user.get().getCategories(), entity.getCategories())));
+
+        List<RoomListRes> roomListRes = chatRoomList.stream().map(
+                chatRoom -> RoomListRes.builder()
+                        .id(chatRoom.getId())
+                        .name(chatRoom.getName())
+                        .hostName(chatRoom.getHostName())
+                        .open(chatRoom.getOpenTime())
+                        .close(chatRoom.getCloseTime())
+                        .current(chatRoom.getCurrentParticipant())
+                        .max(chatRoom.getMaxParticipant())
+                        .categories(chatRoom.getCategories())
+                        .build()
+        ).toList();
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(roomListRes)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //EunmSet을 String배열로 형변환
+    private static String[] EnumSetToString(EnumSet<Category> enumSet) {
+        String[] result = new String[enumSet.size()];
+        int index = 0;
+
+        for (Enum<Category> enumValue : enumSet) {
+            result[index++] = enumValue.name();
+        }
+
+        return result;
+    }
+
+    //array1과 array2가 겹치는 개수 반환
+    private static int calculateSimilarity(EnumSet<Category> user_categories, EnumSet<Category> room_categories) {
+
+        String[] array1 = EnumSetToString(user_categories);
+        String[] array2 = EnumSetToString(room_categories);
+
+        int similarity = 0;
+        int length = Math.min(array1.length, array2.length);
+
+        for (int i = 0; i < length; i++) {
+            if (array1[i].equals(array2[i])) {
+                similarity++;
+            }
+        }
+
+        return similarity;
     }
 
     //방 검색 -> 호스트 이름과 메뉴 이름으로 검색할 수 있음.

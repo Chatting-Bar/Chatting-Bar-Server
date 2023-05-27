@@ -75,6 +75,22 @@ public class ChatRoomController {
         return chatRoomService.findChatRoom(userPrincipal);
     }
 
+    //방 조회(최신순)
+    @GetMapping("/latest")
+    public ResponseEntity<?> findLatestChatRoom(
+            @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return chatRoomService.findLatestChatRoom(userPrincipal);
+    }
+
+    //방 조회(추천 카테고리순)
+    @GetMapping("/recommend")
+    public ResponseEntity<?> findRecommendedChatRoom(
+            @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return chatRoomService.findRecommendedChatRoom(userPrincipal);
+    }
+
     //방 검색
     @GetMapping("/{search}")
     public ResponseEntity<?> searchChatRoom(
