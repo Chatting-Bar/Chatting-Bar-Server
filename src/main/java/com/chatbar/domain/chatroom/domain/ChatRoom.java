@@ -3,21 +3,16 @@ package com.chatbar.domain.chatroom.domain;
 import com.chatbar.domain.common.BaseEntity;
 import com.chatbar.domain.common.Category;
 import com.chatbar.domain.user.domain.User;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Null;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -31,15 +26,11 @@ public class ChatRoom extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private User host;
 
-    private String hostName;
-
     @NotNull
     private String name;
 
     private String desc;
 
-    @Nullable
-    @Lob
     private EnumSet<Category> categories = EnumSet.noneOf(Category.class);
 
     private LocalDateTime openTime;
@@ -50,17 +41,14 @@ public class ChatRoom extends BaseEntity {
 
     private int currentParticipant;
 
-    private boolean isFull = false;
-
-    private boolean isPrivate = false;
+    private Boolean isPrivate = Boolean.FALSE;
 
     private String password;
 
     @Builder
-    public ChatRoom(Long id, User host, String name, String desc, EnumSet<Category> categories, LocalDateTime open, LocalDateTime close, int max, int current, boolean isPrivate, String password){
+    public ChatRoom(Long id, User host, String name, String desc, EnumSet<Category> categories, LocalDateTime open, LocalDateTime close, int max, int current, Boolean isPrivate, String password){
         this.id = id;
         this.host = host;
-        this.hostName = host.getNickname();
         this.name = name;
         this.desc = desc;
         this.categories = categories;
@@ -68,7 +56,6 @@ public class ChatRoom extends BaseEntity {
         this.closeTime = close;
         this.maxParticipant = max;
         this.currentParticipant = current;
-        this.isFull = false;
         this.isPrivate = isPrivate;
         this.password = password;
     }
@@ -85,21 +72,9 @@ public class ChatRoom extends BaseEntity {
 
     public void updateMaxParticipant(int maxParticipant){this.maxParticipant = maxParticipant;}
 
-    public void updateCurrentParticipant(int currentParticipant){
-        // 방이 가득 찬 경우는 isFull을 true로.
-        if(currentParticipant > maxParticipant){
-            this.isFull = true;
-        }
-        else { //가득 찬 경우가 아니면 현재 인원 업데이트
-            this.currentParticipant = currentParticipant;
-            //isFull이 true였다가 false로 변하는 경우
-            if(this.isFull){
-                this.isFull = false;
-            }
-        }
-    }
+    public void updateCurrentParticipant(int currentParticipant){this.currentParticipant = currentParticipant;}
 
-    public void updateIsPrivate(boolean isPrivate){this.isPrivate = isPrivate;}
+    public void updateIsPrivate(Boolean isPrivate){this.isPrivate = isPrivate;}
 
     public void updatePassword(String password){this.password = password;}
 }

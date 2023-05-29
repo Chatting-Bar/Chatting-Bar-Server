@@ -4,10 +4,8 @@ import com.chatbar.domain.common.Category;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.EnumSet;
 
 @Data
@@ -18,13 +16,10 @@ public class CreateRoomReq {
 
     private String desc;
 
-    @Nullable
-    private String[] categories;
+    private EnumSet<Category> categories;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime openTime;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime closeTime;
 
     private int maxParticipant;
