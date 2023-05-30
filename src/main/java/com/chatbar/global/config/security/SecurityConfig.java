@@ -86,6 +86,7 @@ public class SecurityConfig {
                 .exceptionHandling()
                     .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                     .and()
+
                 .authorizeHttpRequests()
                     .requestMatchers("/", "/healthcheck", "/error", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html", "/**/*.css", "/**/*.js")
                         .permitAll()
