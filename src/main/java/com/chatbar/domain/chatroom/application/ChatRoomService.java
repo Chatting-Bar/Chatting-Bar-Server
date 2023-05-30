@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -44,6 +45,12 @@ public class ChatRoomService {
 
         Optional<User> user = userRepository.findById(userPrincipal.getId());
         DefaultAssert.isTrue(user.isPresent(), "올바르지 않은 유저입니다.");
+
+        //오픈시간이 마감시간보다 늦는 경우 예외처리
+        DefaultAssert.isTrue(!createRoomReq.getOpenTime().isAfter(createRoomReq.getCloseTime()),"시작시간이 마감시간 이후입니다.");
+
+        //이미 지나간 시간에 방을 만들려고 하는 경우 예외처리
+        DefaultAssert.isTrue(!LocalDateTime.now().isAfter(createRoomReq.getOpenTime()),"현재시간 이후부터 채팅방 오픈이 가능합니다.");
 
         ChatRoom chatRoom = ChatRoom.builder()
                 .name(createRoomReq.getName())
@@ -94,6 +101,11 @@ public class ChatRoomService {
         //이미 입장해있는 경우 예외처리
         Optional<UserChatRoom> test = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
         DefaultAssert.isTrue(test.isEmpty(), "이미 입장해있는 채팅방입니다.");
+
+        //영업시간이 아닌 경우 예외처리
+        LocalDateTime currentTime = LocalDateTime.now();
+        DefaultAssert.isTrue(!currentTime.isBefore(chatRoom.get().getOpenTime()),"채팅방 오픈시간 전입니다.");
+        DefaultAssert.isTrue(!currentTime.isAfter(chatRoom.get().getCloseTime()),"채팅방 마감시간 후입니다.");
 
         UserChatRoom userChatRoom = UserChatRoom.builder()
                 .user(user.get())
