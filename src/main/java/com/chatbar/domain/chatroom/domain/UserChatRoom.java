@@ -24,6 +24,7 @@ public class UserChatRoom extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Enumerated(EnumType.STRING)
     private Role userRole; // 방장 or 손님
 
     private boolean isFrozen; //얼려진 상태인지 -> false면 말할 수 있음.

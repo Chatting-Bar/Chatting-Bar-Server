@@ -37,7 +37,9 @@ public class User extends BaseEntity {
     @Column(name = "profile_img")
     private String profileImg;
 
-    private EnumSet<Category> categories = EnumSet.noneOf(Category.class);
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Enumerated(EnumType.STRING)
+    private EnumSet<Category> categories;
 
     @Enumerated(EnumType.STRING)
     private Role role;

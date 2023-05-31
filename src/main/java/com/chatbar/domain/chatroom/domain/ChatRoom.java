@@ -40,6 +40,8 @@ public class ChatRoom extends BaseEntity {
 
     @Nullable
     @Lob
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Enumerated(EnumType.STRING)
     private EnumSet<Category> categories = EnumSet.noneOf(Category.class);
 
     private LocalDateTime openTime;
