@@ -34,7 +34,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         Optional<User> user = userRepository.findById(id);
         DefaultAssert.isOptionalPresent(user);
 
-        return UserPrincipal.create(user.get());
+        return  UserPrincipal.create(user.get());
     }
 
 }

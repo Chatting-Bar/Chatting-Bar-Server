@@ -67,6 +67,4 @@ public class User extends BaseEntity {
     public void updateProfileImg(String profileImg){this.profileImg = profileImg;}
 
     public void updateCategories(EnumSet<Category> newCategories){this.categories = newCategories;}
-
-
 }
