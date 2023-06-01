@@ -9,21 +9,21 @@ import org.hibernate.annotations.Where;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Where(clause = "status = 'ACTIVE'")
-public class Subscribe extends BaseEntity {
+public class Follow extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "fromUserId")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fromUser_id")
     private User fromUser;  //구독하는 유저
 
-    @JoinColumn(name = "toUserId")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "toUser_id")
     private User toUser;    //구독받는 유저
 
     @Builder
-    public Subscribe(Long id, User fromUser, User toUser) {
+    public Follow(Long id, User fromUser, User toUser) {
         this.id = id;
         this.fromUser = fromUser;
         this.toUser = toUser;
