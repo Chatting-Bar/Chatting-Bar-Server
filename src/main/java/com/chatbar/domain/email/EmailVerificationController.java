@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 @RestController
 @RequestMapping("/api")
 public class EmailVerificationController {
@@ -37,4 +40,7 @@ public class EmailVerificationController {
         }
     }
 }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
