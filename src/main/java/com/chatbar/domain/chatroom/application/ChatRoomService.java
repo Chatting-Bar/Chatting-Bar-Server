@@ -18,6 +18,7 @@ import com.chatbar.global.payload.ApiResponse;
 import com.chatbar.global.payload.ErrorCode;
 import com.chatbar.global.payload.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -236,7 +237,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
-                        .categories(chatRoom.getCategories())
+                        .categories(EnumSetToString(chatRoom.getCategories()))
                         .build()
         ).toList();
 
@@ -265,7 +266,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
-                        .categories(chatRoom.getCategories())
+                        .categories(EnumSetToString(chatRoom.getCategories()))
                         .build()
         ).toList();
 
@@ -297,7 +298,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
-                        .categories(chatRoom.getCategories())
+                        .categories(EnumSetToString(chatRoom.getCategories()))
                         .build()
         ).toList();
 
@@ -311,6 +312,10 @@ public class ChatRoomService {
 
     //EunmSet을 String배열로 형변환
     private static String[] EnumSetToString(EnumSet<Category> enumSet) {
+        if (enumSet == null) {
+            return new String[0];
+        }
+
         String[] result = new String[enumSet.size()];
         int index = 0;
 
@@ -362,7 +367,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
-                        .categories(chatRoom.getCategories())
+                        .categories(EnumSetToString(chatRoom.getCategories()))
                         .build()
         ).toList();
 

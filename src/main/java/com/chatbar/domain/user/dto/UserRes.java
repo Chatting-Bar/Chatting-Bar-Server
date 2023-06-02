@@ -1,6 +1,8 @@
 package com.chatbar.domain.user.dto;
 
 import com.chatbar.domain.common.Category;
+import com.chatbar.domain.common.CategorySetConverter;
+import jakarta.persistence.Convert;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,10 +19,10 @@ public class UserRes {
 
     private String profileImg;
 
-    private EnumSet<Category> categories = EnumSet.noneOf(Category.class);
+    private String[] categories;
 
     @Builder
-    public UserRes(Long id, String nickname, String email, String profileImg, EnumSet<Category> categories) {
+    public UserRes(Long id, String nickname, String email, String profileImg, String[] categories) {
         this.id = id;
         this.nickname = nickname;
         this.email = email;

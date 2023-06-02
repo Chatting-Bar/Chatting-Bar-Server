@@ -2,6 +2,7 @@ package com.chatbar.domain.chatroom.domain;
 
 import com.chatbar.domain.common.BaseEntity;
 import com.chatbar.domain.common.Category;
+import com.chatbar.domain.common.CategorySetConverter;
 import com.chatbar.domain.user.domain.User;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
@@ -39,9 +40,7 @@ public class ChatRoom extends BaseEntity {
     private String desc;
 
     @Nullable
-    @Lob
-    @ElementCollection(fetch = FetchType.LAZY)
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = CategorySetConverter.class)
     private EnumSet<Category> categories = EnumSet.noneOf(Category.class);
 
     private LocalDateTime openTime;

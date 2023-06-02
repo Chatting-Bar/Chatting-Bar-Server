@@ -2,6 +2,7 @@ package com.chatbar.domain.user.domain;
 
 import com.chatbar.domain.common.BaseEntity;
 import com.chatbar.domain.common.Category;
+import com.chatbar.domain.common.CategorySetConverter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -37,9 +38,8 @@ public class User extends BaseEntity {
     @Column(name = "profile_img")
     private String profileImg;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @Enumerated(EnumType.STRING)
-    private EnumSet<Category> categories;
+    @Convert(converter = CategorySetConverter.class)
+    private EnumSet<Category> categories = EnumSet.noneOf(Category.class);
 
     @Enumerated(EnumType.STRING)
     private Role role;
