@@ -4,10 +4,7 @@ import com.chatbar.domain.chatroom.domain.ChatRoom;
 import com.chatbar.domain.chatroom.domain.UserChatRoom;
 import com.chatbar.domain.chatroom.domain.repository.ChatRoomRepository;
 import com.chatbar.domain.chatroom.domain.repository.UserChatRoomRepository;
-import com.chatbar.domain.chatroom.dto.CreateRoomReq;
-import com.chatbar.domain.chatroom.dto.EnterRoomReq;
-import com.chatbar.domain.chatroom.dto.ResultRoomListRes;
-import com.chatbar.domain.chatroom.dto.RoomListRes;
+import com.chatbar.domain.chatroom.dto.*;
 import com.chatbar.domain.common.Category;
 import com.chatbar.domain.user.domain.User;
 import com.chatbar.domain.user.domain.repository.UserRepository;
@@ -18,7 +15,6 @@ import com.chatbar.global.payload.ApiResponse;
 import com.chatbar.global.payload.ErrorCode;
 import com.chatbar.global.payload.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -220,6 +216,39 @@ public class ChatRoomService {
         return ResponseEntity.ok(apiResponse);
     }
 
+    //방 하나 조회
+    public ResponseEntity<?> findOneChatRoom(UserPrincipal userPrincipal, Long roomId) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId);
+        DefaultAssert.isTrue(chatRoom.isPresent(), "채팅방 ID가 올바르지 않습니다.");
+        ChatRoom findRoom = chatRoom.get();
+
+        RoomListRes roomListRes = RoomListRes.builder()
+                .id(findRoom.getId())
+                .name(findRoom.getName())
+                .desc(findRoom.getDesc())
+                .hostName(findRoom.getHostName())
+                .open(findRoom.getOpenTime())
+                .close(findRoom.getCloseTime())
+                .current(findRoom.getCurrentParticipant())
+                .max(findRoom.getMaxParticipant())
+                .isFull(findRoom.isFull())
+                .categories(EnumSetToString(findRoom.getCategories()))
+                .isPrivate(findRoom.isPrivate())
+                .password(findRoom.getPassword())
+                .build();
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(roomListRes)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
     //방 조회 (조회 기준 - 방 id)
     public ResponseEntity<?> findChatRoom(UserPrincipal userPrincipal) {
 
@@ -232,12 +261,16 @@ public class ChatRoomService {
                 chatRoom -> RoomListRes.builder()
                         .id(chatRoom.getId())
                         .name(chatRoom.getName())
+                        .desc(chatRoom.getDesc())
                         .hostName(chatRoom.getHostName())
                         .open(chatRoom.getOpenTime())
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
+                        .isFull(chatRoom.isFull())
                         .categories(EnumSetToString(chatRoom.getCategories()))
+                        .isPrivate(chatRoom.isPrivate())
+                        .password(chatRoom.getPassword())
                         .build()
         ).toList();
 
@@ -349,6 +382,33 @@ public class ChatRoomService {
 
         return ResponseEntity.ok(apiResponse);
 
+    }
+    //방에 있는 유저들 조회
+    public ResponseEntity<?> findUsersInChatRoom(UserPrincipal userPrincipal, Long roomId) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId);
+        DefaultAssert.isTrue(chatRoom.isPresent(), "채팅방의 ID가 올바르지 않습니다.");
+
+        List<UserChatRoom> userChatRoomList = userChatRoomRepository.findByChatRoom(chatRoom.get());
+
+        List<UserListRes> userListRes = userChatRoomList.stream().map(
+                userChatRoom -> UserListRes.builder()
+                        .id(userChatRoom.getId())
+                        .nickname(userChatRoom.getUser().getNickname())
+                        .profileImg(userChatRoom.getUser().getProfileImg())
+                        .userRole(userChatRoom.getUserRole())
+                        .build()
+        ).toList();
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(userListRes)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
     }
 
     // JSON 문자열 -> EnumSet 직렬화 메소드

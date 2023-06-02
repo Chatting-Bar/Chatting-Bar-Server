@@ -87,15 +87,18 @@ public class ChatRoom extends BaseEntity {
     public void updateMaxParticipant(int maxParticipant){this.maxParticipant = maxParticipant;}
 
     public void updateCurrentParticipant(int currentParticipant){
-        // 방이 가득 찬 경우는 isFull을 true로.
-        if(currentParticipant > maxParticipant){
-            this.isFull = true;
-        }
-        else { //가득 찬 경우가 아니면 현재 인원 업데이트
+
+        if (currentParticipant < maxParticipant) {  //가득 찬 경우가 아니면
             this.currentParticipant = currentParticipant;
-            //isFull이 true였다가 false로 변하는 경우
+            //isFull이 true였다가 false로 변하는 경우 (ex.퇴장, 강퇴)
             if(this.isFull){
                 this.isFull = false;
+            }
+        }
+        else{  //가득 찬 경우
+            this.isFull = true;
+            if (currentParticipant == maxParticipant) {
+                this.currentParticipant = currentParticipant;
             }
         }
     }
