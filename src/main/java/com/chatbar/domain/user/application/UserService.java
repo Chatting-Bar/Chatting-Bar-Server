@@ -45,6 +45,10 @@ public class UserService {
     }
 
     private static String[] EnumSetToString(EnumSet<Category> enumSet) {
+        if (enumSet == null) {
+            return new String[0];
+        }
+
         String[] result = new String[enumSet.size()];
         int index = 0;
 
