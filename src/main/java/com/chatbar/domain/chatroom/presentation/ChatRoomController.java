@@ -3,6 +3,7 @@ package com.chatbar.domain.chatroom.presentation;
 import com.chatbar.domain.chatroom.application.ChatRoomService;
 import com.chatbar.domain.chatroom.dto.CreateRoomReq;
 import com.chatbar.domain.chatroom.dto.EnterRoomReq;
+import com.chatbar.domain.chatroom.dto.UserListRes;
 import com.chatbar.domain.user.domain.User;
 import com.chatbar.global.config.security.token.CurrentUser;
 import com.chatbar.global.config.security.token.UserPrincipal;
@@ -34,7 +35,7 @@ public class ChatRoomController {
     public ResponseEntity<?> enterChatRoom(
             @CurrentUser UserPrincipal userPrincipal,
             @Valid @RequestBody EnterRoomReq enterRoomReq
-    ){
+    ) {
         return chatRoomService.enterChatRoom(userPrincipal, enterRoomReq);
     }
 
@@ -43,7 +44,7 @@ public class ChatRoomController {
     public ResponseEntity<?> exitChatRoom(
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable(value = "roomId") Long roomId
-    ){
+    ) {
         return chatRoomService.exitChatRoom(userPrincipal, roomId);
     }
 
@@ -65,6 +66,15 @@ public class ChatRoomController {
             @RequestParam("userId") Long userId
     ) {
         return chatRoomService.frozenUser(userPrincipal, roomId, userId);
+    }
+
+    //방 하나 조회
+    @GetMapping("/{roomId}")
+    public ResponseEntity<?> findOneChatRoom(
+            @CurrentUser UserPrincipal userPrincipal,
+            @PathVariable(value = "roomId") Long roomId
+    ) {
+        return chatRoomService.findOneChatRoom(userPrincipal, roomId);
     }
 
     //방 조회
@@ -92,11 +102,20 @@ public class ChatRoomController {
     }
 
     //방 검색
-    @GetMapping("/{search}")
+    @GetMapping("/search/{search}")
     public ResponseEntity<?> searchChatRoom(
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable(value = "search") String search
-    ){
+    ) {
         return chatRoomService.findChatRoomByMenuAndHost(userPrincipal, search);
+    }
+
+    //방에 있는 유저 조회
+    @GetMapping("/{roomId}/users")
+    public ResponseEntity<?> findUsersInChatRoom(
+            @CurrentUser UserPrincipal userPrincipal,
+            @PathVariable(value = "roomId") Long roomId
+    ) {
+        return chatRoomService.findUsersInChatRoom(userPrincipal, roomId);
     }
 }
