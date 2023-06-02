@@ -15,11 +15,14 @@ public class UserListRes {
 
     private UserChatRoom.Role userRole;
 
+    private boolean isFrozen; //얼려진 상태인지 -> false면 말할 수 있음.
+
     @Builder
-    public UserListRes(Long id, String nickname, String profileImg, UserChatRoom.Role userRole) {
+    public UserListRes(Long id, String nickname, String profileImg, UserChatRoom.Role userRole, boolean isFrozen) {
         this.id = id;
         this.nickname = nickname;
         this.profileImg = profileImg;
         this.userRole = userRole;
+        this.isFrozen = isFrozen;
     }
 }

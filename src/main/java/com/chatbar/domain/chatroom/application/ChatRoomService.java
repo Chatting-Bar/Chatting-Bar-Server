@@ -396,10 +396,11 @@ public class ChatRoomService {
 
         List<UserListRes> userListRes = userChatRoomList.stream().map(
                 userChatRoom -> UserListRes.builder()
-                        .id(userChatRoom.getId())
+                        .id(userChatRoom.getUser().getId())
                         .nickname(userChatRoom.getUser().getNickname())
                         .profileImg(userChatRoom.getUser().getProfileImg())
                         .userRole(userChatRoom.getUserRole())
+                        .isFrozen(userChatRoom.isFrozen())
                         .build()
         ).toList();
 
