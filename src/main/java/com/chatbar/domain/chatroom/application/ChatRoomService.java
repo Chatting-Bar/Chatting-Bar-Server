@@ -18,6 +18,7 @@ import com.chatbar.global.payload.ApiResponse;
 import com.chatbar.global.payload.ErrorCode;
 import com.chatbar.global.payload.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -236,7 +237,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
-                        .categories(chatRoom.getCategories())
+                        .categories(EnumSetToString(chatRoom.getCategories()))
                         .build()
         ).toList();
 
@@ -265,7 +266,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
-                        .categories(chatRoom.getCategories())
+                        .categories(EnumSetToString(chatRoom.getCategories()))
                         .build()
         ).toList();
 
@@ -297,7 +298,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
-                        .categories(chatRoom.getCategories())
+                        .categories(EnumSetToString(chatRoom.getCategories()))
                         .build()
         ).toList();
 
@@ -307,36 +308,6 @@ public class ChatRoomService {
                 .build();
 
         return ResponseEntity.ok(apiResponse);
-    }
-
-    //EunmSet을 String배열로 형변환
-    private static String[] EnumSetToString(EnumSet<Category> enumSet) {
-        String[] result = new String[enumSet.size()];
-        int index = 0;
-
-        for (Enum<Category> enumValue : enumSet) {
-            result[index++] = enumValue.name();
-        }
-
-        return result;
-    }
-
-    //array1과 array2가 겹치는 개수 반환
-    private static int calculateSimilarity(EnumSet<Category> user_categories, EnumSet<Category> room_categories) {
-
-        String[] array1 = EnumSetToString(user_categories);
-        String[] array2 = EnumSetToString(room_categories);
-
-        int similarity = 0;
-        int length = Math.min(array1.length, array2.length);
-
-        for (int i = 0; i < length; i++) {
-            if (array1[i].equals(array2[i])) {
-                similarity++;
-            }
-        }
-
-        return similarity;
     }
 
     //방 검색 -> 호스트 이름과 메뉴 이름으로 검색할 수 있음.
@@ -362,7 +333,7 @@ public class ChatRoomService {
                         .close(chatRoom.getCloseTime())
                         .current(chatRoom.getCurrentParticipant())
                         .max(chatRoom.getMaxParticipant())
-                        .categories(chatRoom.getCategories())
+                        .categories(EnumSetToString(chatRoom.getCategories()))
                         .build()
         ).toList();
 
@@ -394,5 +365,38 @@ public class ChatRoomService {
             }
         }
         return temp;
+    }
+    //EunmSet을 String배열로 형변환
+    private static String[] EnumSetToString(EnumSet<Category> enumSet) {
+        if (enumSet == null) {
+            return new String[0];
+        }
+
+        String[] result = new String[enumSet.size()];
+        int index = 0;
+
+        for (Enum<Category> enumValue : enumSet) {
+            result[index++] = enumValue.name();
+        }
+
+        return result;
+    }
+
+    //array1과 array2가 겹치는 개수 반환
+    private static int calculateSimilarity(EnumSet<Category> user_categories, EnumSet<Category> room_categories) {
+
+        String[] array1 = EnumSetToString(user_categories);
+        String[] array2 = EnumSetToString(room_categories);
+
+        int similarity = 0;
+        int length = Math.min(array1.length, array2.length);
+
+        for (int i = 0; i < length; i++) {
+            if (array1[i].equals(array2[i])) {
+                similarity++;
+            }
+        }
+
+        return similarity;
     }
 }

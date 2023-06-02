@@ -1,7 +1,9 @@
 package com.chatbar.domain.chatroom.dto;
 
 import com.chatbar.domain.common.Category;
+import com.chatbar.domain.common.CategorySetConverter;
 import com.chatbar.domain.user.domain.User;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Lob;
 import lombok.Builder;
 import lombok.Data;
@@ -22,12 +24,11 @@ public class RoomListRes {
 
     private String time;
 
-    @Lob
-    private EnumSet<Category> categories;
+    private String[] categories;
 
 
     @Builder
-    public RoomListRes(Long id, String name, String hostName, int current, int max, LocalDateTime open, LocalDateTime close, EnumSet<Category> categories) {
+    public RoomListRes(Long id, String name, String hostName, int current, int max, LocalDateTime open, LocalDateTime close, String[] categories) {
         this.id = id;
         this.name = name;
         this.hostName = hostName;

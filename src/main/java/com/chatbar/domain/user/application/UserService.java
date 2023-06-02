@@ -1,5 +1,6 @@
 package com.chatbar.domain.user.application;
 
+import com.chatbar.domain.common.Category;
 import com.chatbar.domain.user.domain.User;
 import com.chatbar.domain.user.domain.repository.UserRepository;
 import com.chatbar.domain.user.dto.UserRes;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.EnumSet;
 import java.util.Optional;
 
 @Service
@@ -31,7 +33,7 @@ public class UserService {
                 .email(user.get().getEmail())
                 .nickname(user.get().getNickname())
                 .profileImg(user.get().getProfileImg())
-                .categories(user.get().getCategories())
+                .categories(EnumSetToString(user.get().getCategories()))
                 .build();
 
         ApiResponse apiResponse = ApiResponse.builder()
@@ -42,4 +44,18 @@ public class UserService {
         return ResponseEntity.ok(apiResponse);
     }
 
+    private static String[] EnumSetToString(EnumSet<Category> enumSet) {
+        if (enumSet == null) {
+            return new String[0];
+        }
+
+        String[] result = new String[enumSet.size()];
+        int index = 0;
+
+        for (Enum<Category> enumValue : enumSet) {
+            result[index++] = enumValue.name();
+        }
+
+        return result;
+    }
 }
