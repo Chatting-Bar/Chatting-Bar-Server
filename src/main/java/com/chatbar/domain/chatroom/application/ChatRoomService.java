@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
@@ -48,6 +49,13 @@ public class ChatRoomService {
 
         //이미 지나간 시간에 방을 만들려고 하는 경우 예외처리
         DefaultAssert.isTrue(!LocalDateTime.now().isAfter(createRoomReq.getOpenTime()),"현재시간 이후부터 채팅방 오픈이 가능합니다.");
+
+        //채팅 제한시간 24시간
+        Duration duration = Duration.between(createRoomReq.getOpenTime(), createRoomReq.getCloseTime());
+        long daysDifference = duration.toDays();
+        long hoursDifference = duration.toHours() % 24;
+        long minutesDifference = duration.toMinutes() % 60;
+        DefaultAssert.isTrue((daysDifference == 0 && hoursDifference < 24) || (daysDifference == 1 && hoursDifference == 0 && minutesDifference == 0), "채팅방 최대 영업시간은 24시간입니다.");
 
         ChatRoom chatRoom = ChatRoom.builder()
                 .name(createRoomReq.getName())
