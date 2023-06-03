@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @PropertySource(value = {"classpath:database/application-database.yml"}, factory = YamlPropertySourceFactory.class)
 @PropertySource(value = {"classpath:oauth/application-oauth.yml"}, factory = YamlPropertySourceFactory.class)
-@EnableScheduling
 public class ChatbarApplication {
 
 	public static void main(String[] args) {

@@ -6,6 +6,7 @@ import com.chatbar.domain.chatroom.domain.repository.ChatRoomRepository;
 import com.chatbar.domain.chatroom.domain.repository.UserChatRoomRepository;
 import com.chatbar.domain.chatroom.dto.*;
 import com.chatbar.domain.common.Category;
+import com.chatbar.domain.common.Status;
 import com.chatbar.domain.user.domain.User;
 import com.chatbar.domain.user.domain.repository.UserRepository;
 import com.chatbar.global.DefaultAssert;
@@ -90,6 +91,38 @@ public class ChatRoomService {
         return ResponseEntity.ok(apiResponse);
     }
 
+    //방 닫기
+    @Transactional
+    public ResponseEntity<?> closeChatRoom(UserPrincipal userPrincipal, CloseRoomReq closeRoomReq) throws JsonProcessingException {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "올바르지 않은 유저입니다.");
+
+        Optional<ChatRoom> closeRoom = chatRoomRepository.findById(closeRoomReq.getId());
+        DefaultAssert.isTrue(closeRoom.isPresent(), "올바르지 않은 채팅방입니다.");
+
+        //이미 닫은 방인 경우
+        DefaultAssert.isTrue(closeRoom.get().getStatus().equals(Status.ACTIVE),"이미 닫힌 방입니다.");
+
+        List<UserChatRoom> userChatRoomList = userChatRoomRepository.findAllByChatRoom(closeRoom.get());
+        DefaultAssert.isTrue(!userChatRoomList.isEmpty(), "올바르지 않은 유저-채팅방입니다.");
+
+        // ChatRoom의 상태를 DELETE로 변경
+        closeRoom.get().updateStatus(Status.DELETE);
+
+        // UserChatRoom의 상태를 DELETE로 변경
+        for (UserChatRoom userChatRoom : userChatRoomList) {
+            userChatRoom.updateStatus(Status.DELETE);
+        }
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(Message.builder().message("방을 닫았습니다.").build())
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
     //방 입장
     @Transactional
     public ResponseEntity<?> enterChatRoom(UserPrincipal userPrincipal, EnterRoomReq enterRoomReq) {
@@ -106,6 +139,8 @@ public class ChatRoomService {
         //이미 입장해있는 경우 예외처리
         Optional<UserChatRoom> test = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
         DefaultAssert.isTrue(test.isEmpty(), "이미 입장해있는 채팅방입니다.");
+
+        DefaultAssert.isTrue(!chatRoom.get().getStatus().equals(Status.DELETE), "닫힌 채팅방입니다.");
 
         //영업시간이 아닌 경우 예외처리
         LocalDateTime currentTime = LocalDateTime.now();
@@ -142,7 +177,7 @@ public class ChatRoomService {
         Optional<UserChatRoom> userChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
         DefaultAssert.isTrue(userChatRoom.isPresent(), "유저채팅방이 올바르지 않습니다.");
 
-        userChatRoomRepository.delete(userChatRoom.get());
+        userChatRoom.get().updateStatus(Status.DELETE);
 
         chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() - 1);
 
@@ -175,7 +210,7 @@ public class ChatRoomService {
 
         //유저가 방장인 경우에만 강퇴 허용
         if (userChatRoom.get().getUserRole() == UserChatRoom.Role.HOST) {
-            userChatRoomRepository.delete(kickUserChatRoom.get());
+            kickUserChatRoom.get().updateStatus(Status.DELETE);
         }else{
             throw new DefaultException(ErrorCode.INVALID_PARAMETER, "유저가 방장이 아닙니다.");
         }
@@ -417,7 +452,8 @@ public class ChatRoomService {
         Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId);
         DefaultAssert.isTrue(chatRoom.isPresent(), "채팅방의 ID가 올바르지 않습니다.");
 
-        List<UserChatRoom> userChatRoomList = userChatRoomRepository.findByChatRoom(chatRoom.get());
+        //Active 상태인 유저만 조회
+        List<UserChatRoom> userChatRoomList = userChatRoomRepository.findAllByChatRoomAndStatus(chatRoom.get(), Status.ACTIVE);
 
         List<UserListRes> userListRes = userChatRoomList.stream().map(
                 userChatRoom -> UserListRes.builder()

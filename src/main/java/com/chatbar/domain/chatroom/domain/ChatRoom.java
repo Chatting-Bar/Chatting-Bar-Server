@@ -22,7 +22,7 @@ import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Where(clause = "status = 'ACTIVE'")
+//@Where(clause = "status = 'ACTIVE'")
 @Getter
 public class ChatRoom extends BaseEntity {
 
