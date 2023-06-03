@@ -19,6 +19,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,6 +109,11 @@ public class ChatRoomService {
         List<UserChatRoom> userChatRoomList = userChatRoomRepository.findAllByChatRoom(closeRoom.get());
         DefaultAssert.isTrue(!userChatRoomList.isEmpty(), "올바르지 않은 유저-채팅방입니다.");
 
+        Optional<UserChatRoom> hostChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), closeRoom.get());
+        DefaultAssert.isTrue(hostChatRoom.isPresent(), "유저 채팅방이 올바르지 않습니다.");
+
+        DefaultAssert.isTrue(hostChatRoom.get().getUserRole().equals(UserChatRoom.Role.HOST), "방장만 방을 닫을 수 있습니다.");
+
         // ChatRoom의 상태를 DELETE로 변경
         closeRoom.get().updateStatus(Status.DELETE);
 
@@ -123,6 +130,28 @@ public class ChatRoomService {
         return ResponseEntity.ok(apiResponse);
     }
 
+    //1분마다 자동으로 검사해서 마감시간이 지난 채팅방들을 닫아주는 메소드
+    @Transactional
+    @Scheduled(fixedRate = 60000)
+    public void autoCloseChatRoom() {
+        System.out.println("<채팅방 닫기 체크>");
+        List<ChatRoom> chatRoomList = chatRoomRepository.findAllByStatus(Status.ACTIVE);
+        if (!chatRoomList.isEmpty()) {
+            for (ChatRoom chatRoom : chatRoomList) {
+                //지금 시간과 마감 시간 비교. 마감시간 < 지금시간이면 방 닫기
+                if (chatRoom.getCloseTime().isBefore(LocalDateTime.now())) {
+                    chatRoom.updateStatus(Status.DELETE);
+                    List<UserChatRoom> userChatRoomList = userChatRoomRepository.findAllByChatRoom(chatRoom);
+                    if(!userChatRoomList.isEmpty()){
+                        for (UserChatRoom userChatRoom : userChatRoomList) {
+                            userChatRoom.updateStatus(Status.DELETE);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     //방 입장
     @Transactional
     public ResponseEntity<?> enterChatRoom(UserPrincipal userPrincipal, EnterRoomReq enterRoomReq) {
@@ -133,12 +162,12 @@ public class ChatRoomService {
         Optional<ChatRoom> chatRoom = chatRoomRepository.findById(enterRoomReq.getId());
         DefaultAssert.isTrue(chatRoom.isPresent(), "올바르지 않은 채팅방입니다.");
 
-        chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() + 1);
-        DefaultAssert.isTrue(!chatRoom.get().isFull(), "채팅방 정원이 가득 찼습니다.");
-
         //이미 입장해있는 경우 예외처리
         Optional<UserChatRoom> test = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
         DefaultAssert.isTrue(test.isEmpty(), "이미 입장해있는 채팅방입니다.");
+
+        DefaultAssert.isTrue(!chatRoom.get().isFull(), "채팅방 정원이 가득 찼습니다.");
+        chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() + 1);
 
         DefaultAssert.isTrue(!chatRoom.get().getStatus().equals(Status.DELETE), "닫힌 채팅방입니다.");
 
@@ -257,6 +286,24 @@ public class ChatRoomService {
                 .build();
 
         return ResponseEntity.ok(apiResponse);
+    }
+
+    //1분마다 검사해서 얼려진 후 3분이 지났다면 얼리기 해제해주는 메소드
+    @Transactional
+    @Scheduled(fixedRate = 60000)
+    public void autoCheckFrozen() {
+        //ACTIVE인 UserChatRoom을 찾아서 isFrozen값을 가져온 후 True이고 + 얼려진 시간 이후로 3분이 지났다면 얼리기 해제
+        System.out.println("<얼리기 해제 체크>");
+        List<UserChatRoom> userChatRoomList = userChatRoomRepository.findAllByStatus(Status.ACTIVE);
+        if (!userChatRoomList.isEmpty()) {
+            for (UserChatRoom userChatRoom : userChatRoomList) {
+                if (userChatRoom.isFrozen()) {
+                    if(userChatRoom.getStartFrozenTime().isBefore(LocalDateTime.now().plusMinutes(3))){
+                        userChatRoom.updateIsFrozen(false);
+                    }
+                }
+            }
+        }
     }
 
     //방 하나 조회

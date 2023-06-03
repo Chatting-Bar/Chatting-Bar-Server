@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Where;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -31,6 +31,8 @@ public class UserChatRoom extends BaseEntity {
 
     private boolean isFrozen; //얼려진 상태인지 -> false면 말할 수 있음.
 
+    private LocalDateTime startFrozenTime; //얼려진 시간
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chatRoom_id")
     private ChatRoom chatRoom;
@@ -42,9 +44,11 @@ public class UserChatRoom extends BaseEntity {
         this.chatRoom = chatRoom;
         this.userRole = userRole;
         this.isFrozen = isFrozen;
+        this.startFrozenTime = LocalDateTime.now();
     }
 
     public void updateIsFrozen(boolean isFrozen) {
+        this.startFrozenTime = LocalDateTime.now();
         this.isFrozen = isFrozen;
     }
 }
