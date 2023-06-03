@@ -28,6 +28,7 @@ public class FollowService {
 
     //둘 다 DB에 영향을 주므로 @Transactional을 사용
     @Transactional
+    //구독시작
     public ResponseEntity<ApiResponse> startFollowing(UserPrincipal userPrincipal, Long toUserId) {
 
         //유저 확인
@@ -50,15 +51,22 @@ public class FollowService {
 
         followRepository.save(follow);
 
+        FollowRes followRes = FollowRes.builder()
+                .id(follow.getToUser().getId())
+                .nickname(follow.getToUser().getNickname())
+                .email(follow.getToUser().getEmail())
+                .build();
+
         ApiResponse apiResponse = ApiResponse.builder()
                 .check(true)
-                .information(Message.builder().message("구독을 시작합니다.").build())
+                .information(followRes)
                 .build();
 
         return ResponseEntity.ok(apiResponse);
     }
 
     @Transactional
+    //구독 종료
     public ResponseEntity<ApiResponse> stopFollowing(UserPrincipal userPrincipal, Long toUserId) {
 
         //유저 확인
