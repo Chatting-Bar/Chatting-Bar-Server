@@ -11,7 +11,7 @@ import org.hibernate.annotations.Where;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Where(clause = "status = 'ACTIVE'")
+//@Where(clause = "status = 'ACTIVE'")
 @Entity
 public class UserChatRoom extends BaseEntity {
 

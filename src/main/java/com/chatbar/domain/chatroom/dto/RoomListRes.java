@@ -2,8 +2,11 @@ package com.chatbar.domain.chatroom.dto;
 
 import com.chatbar.domain.common.Category;
 import com.chatbar.domain.common.CategorySetConverter;
+import com.chatbar.domain.common.Status;
 import com.chatbar.domain.user.domain.User;
 import jakarta.persistence.Convert;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Lob;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +23,8 @@ public class RoomListRes {
 
     private String desc;
 
+    private Long hostId;
+
     private String hostName;
 
     private String participant;
@@ -34,12 +39,16 @@ public class RoomListRes {
 
     private String password;
 
+//    @Enumerated(value = EnumType.STRING)
+    private Status status;
+
 
     @Builder
-    public RoomListRes(Long id, String name, String desc, String hostName, int current, int max, boolean isFull, LocalDateTime open, LocalDateTime close, String[] categories, boolean isPrivate, String password) {
+    public RoomListRes(Long id, String name, String desc, Long hostId, String hostName, int current, int max, boolean isFull, LocalDateTime open, LocalDateTime close, String[] categories, boolean isPrivate, String password, Status status) {
         this.id = id;
         this.name = name;
         this.desc = desc;
+        this.hostId = hostId;
         this.hostName = hostName;
         this.participant = current + " / " + max;
         this.isFull = isFull;
@@ -47,5 +56,6 @@ public class RoomListRes {
         this.categories = categories;
         this.isPrivate = isPrivate;
         this.password = password;
+        this.status = status;
     }
 }
