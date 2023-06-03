@@ -23,6 +23,8 @@ public class RoomListRes {
 
     private String desc;
 
+    private Long hostId;
+
     private String hostName;
 
     private String participant;
@@ -42,10 +44,11 @@ public class RoomListRes {
 
 
     @Builder
-    public RoomListRes(Long id, String name, String desc, String hostName, int current, int max, boolean isFull, LocalDateTime open, LocalDateTime close, String[] categories, boolean isPrivate, String password, Status status) {
+    public RoomListRes(Long id, String name, String desc, Long hostId, String hostName, int current, int max, boolean isFull, LocalDateTime open, LocalDateTime close, String[] categories, boolean isPrivate, String password, Status status) {
         this.id = id;
         this.name = name;
         this.desc = desc;
+        this.hostId = hostId;
         this.hostName = hostName;
         this.participant = current + " / " + max;
         this.isFull = isFull;
