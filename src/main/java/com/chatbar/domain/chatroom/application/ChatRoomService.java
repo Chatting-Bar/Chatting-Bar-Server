@@ -247,6 +247,7 @@ public class ChatRoomService {
                 .categories(EnumSetToString(findRoom.getCategories()))
                 .isPrivate(findRoom.isPrivate())
                 .password(findRoom.getPassword())
+                .status(findRoom.getStatus())
                 .build();
 
         ApiResponse apiResponse = ApiResponse.builder()
@@ -279,6 +280,7 @@ public class ChatRoomService {
                         .categories(EnumSetToString(chatRoom.getCategories()))
                         .isPrivate(chatRoom.isPrivate())
                         .password(chatRoom.getPassword())
+                        .status(chatRoom.getStatus())
                         .build()
         ).toList();
 
@@ -312,6 +314,7 @@ public class ChatRoomService {
                         .categories(EnumSetToString(chatRoom.getCategories()))
                         .isPrivate(chatRoom.isPrivate())
                         .password(chatRoom.getPassword())
+                        .status(chatRoom.getStatus())
                         .build()
         ).toList();
 
@@ -348,6 +351,7 @@ public class ChatRoomService {
                         .categories(EnumSetToString(chatRoom.getCategories()))
                         .isPrivate(chatRoom.isPrivate())
                         .password(chatRoom.getPassword())
+                        .status(chatRoom.getStatus())
                         .build()
         ).toList();
 
@@ -387,6 +391,7 @@ public class ChatRoomService {
                         .categories(EnumSetToString(chatRoom.getCategories()))
                         .isPrivate(chatRoom.isPrivate())
                         .password(chatRoom.getPassword())
+                        .status(chatRoom.getStatus())
                         .build()
         ).toList();
 
