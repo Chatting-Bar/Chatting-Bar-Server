@@ -50,7 +50,7 @@ public class ChatRoomController {
     }
 
     //방 퇴장
-    @DeleteMapping("/{roomId}")
+    @PatchMapping("/{roomId}")
     public ResponseEntity<?> exitChatRoom(
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable(value = "roomId") Long roomId
@@ -127,5 +127,13 @@ public class ChatRoomController {
             @PathVariable(value = "roomId") Long roomId
     ) {
         return chatRoomService.findUsersInChatRoom(userPrincipal, roomId);
+    }
+
+    //참여했던 채팅방 기록 조회
+    @GetMapping("/records")
+    public ResponseEntity<?> findChatRoomRecord(
+            @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return chatRoomService.findChatRoomRecord(userPrincipal);
     }
 }
