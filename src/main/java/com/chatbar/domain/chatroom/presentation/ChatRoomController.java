@@ -1,6 +1,7 @@
 package com.chatbar.domain.chatroom.presentation;
 
 import com.chatbar.domain.chatroom.application.ChatRoomService;
+import com.chatbar.domain.chatroom.dto.CloseRoomReq;
 import com.chatbar.domain.chatroom.dto.CreateRoomReq;
 import com.chatbar.domain.chatroom.dto.EnterRoomReq;
 import com.chatbar.domain.chatroom.dto.UserListRes;
@@ -28,6 +29,15 @@ public class ChatRoomController {
             @Valid @RequestBody CreateRoomReq createRoomReq
     ) throws JsonProcessingException {
         return chatRoomService.createChatRoom(userPrincipal, createRoomReq);
+    }
+
+    //방 닫기
+    @PatchMapping("/close")
+    public ResponseEntity<?> closeChatRoom(
+            @CurrentUser UserPrincipal userPrincipal,
+            @Valid @RequestBody CloseRoomReq closeRoomReq
+            ) throws JsonProcessingException {
+        return chatRoomService.closeChatRoom(userPrincipal, closeRoomReq);
     }
 
     //방 입장

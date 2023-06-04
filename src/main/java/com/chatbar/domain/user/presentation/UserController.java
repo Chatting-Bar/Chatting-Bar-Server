@@ -109,4 +109,15 @@ public class UserController {
         }
     }
 */
+
+    //ID로 구독자 조회
+    @GetMapping("/following/{toUserId}")
+    public ResponseEntity<?> findFollowingById(
+            @CurrentUser UserPrincipal userPrincipal,
+            @PathVariable(value = "toUserId") Long toUserId
+    ) {
+        return followService.Follow(userPrincipal, toUserId);
+    }
+
+
 }
