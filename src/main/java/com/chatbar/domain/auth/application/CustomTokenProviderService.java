@@ -31,10 +31,6 @@ public class CustomTokenProviderService {
 
     public TokenMapping refreshToken(Authentication authentication, String refreshToken) {
 
-        if (!validateToken(refreshToken)) {
-            throw new IllegalArgumentException("Invalid refresh token.");
-        }
-
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Date now = new Date();
 

@@ -1,18 +1,12 @@
 package com.chatbar.domain.user.dto;
 
-
-import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Getter
 @Data
+@NoArgsConstructor
 public class EmailRes {
 
     private String email;
 
-    @Builder
-    public EmailRes(String email) {
-        this.email = email;
-    }
 }
