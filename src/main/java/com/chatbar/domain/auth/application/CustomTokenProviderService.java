@@ -90,13 +90,19 @@ public class CustomTokenProviderService {
 
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(OAuth2Config.getAuth().getTokenSecret())
+                .setSigningKey(Keys.hmacShaKeyFor(OAuth2Config.getAuth().getTokenSecret().getBytes()))
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        return Long.parseLong(claims.getSubject());
+        String subject = claims.getSubject();
+        if (subject == null) {
+            throw new IllegalArgumentException("토큰의 Subject이 null입니다.");
+        }
+        return Long.parseLong(subject);
     }
+
+
 
     public UsernamePasswordAuthenticationToken getAuthenticationById(String token){
         Long userId = getUserIdFromToken(token);
