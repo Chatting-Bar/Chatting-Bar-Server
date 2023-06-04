@@ -85,9 +85,14 @@ public class ChatRoomService {
         // 방 생성 자체가 본인이 방장으로 참여한 것이기 때문에 userChatRoomRepository에도 추가해준다.
         userChatRoomRepository.save(userChatRoom);
 
+        CreateRoomRes createRoomRes = CreateRoomRes.builder()
+                .id(chatRoom.getId())
+                .message(Message.builder().message("방이 생성되었습니다.").build())
+                .build();
+
         ApiResponse apiResponse = ApiResponse.builder()
                 .check(true)
-                .information(Message.builder().message("방이 생성되었습니다.").build())
+                .information(createRoomRes)
                 .build();
 
         return ResponseEntity.ok(apiResponse);
