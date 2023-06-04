@@ -4,6 +4,8 @@ import com.chatbar.domain.common.Category;
 import com.chatbar.domain.email.EmailService;
 import com.chatbar.domain.user.application.FollowService;
 import com.chatbar.domain.user.application.UserService;
+import com.chatbar.domain.user.dto.EmailRes;
+import com.chatbar.domain.user.dto.VerifyRes;
 import com.chatbar.global.config.security.token.CurrentUser;
 import com.chatbar.global.config.security.token.UserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -76,10 +78,9 @@ public class UserController {
     }
 
     @PostMapping("/requestVeri")
-    public ResponseEntity<?> requestVerificationCode(@RequestBody Map<String, String> emailPayload){
-        String email = emailPayload.get("email");
+    public ResponseEntity<?> requestVerificationCode(@RequestBody EmailRes emailRes){
         try {
-            emailService.sendVerificationCode(email);
+            emailService.sendVerificationCode(emailRes.getEmail());
             return ResponseEntity.ok().build(); // return 200 OK without body
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -87,10 +88,8 @@ public class UserController {
     }
 
     @PostMapping("/verifyCode")
-    public ResponseEntity<?> verifyCode(@RequestBody Map<String, String> payload){
-        String email = payload.get("email");
-        String code = payload.get("code");
-        if(emailService.verifyCode(email, code)) {
+    public ResponseEntity<?> verifyCode(@RequestBody VerifyRes verifyRes){
+        if(emailService.verifyCode(verifyRes.getEmail(), verifyRes.getCode())) {
             return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
