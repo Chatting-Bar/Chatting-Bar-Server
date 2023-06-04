@@ -10,6 +10,7 @@ import com.chatbar.global.config.security.token.UserPrincipal;
 import com.chatbar.global.payload.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -69,7 +70,7 @@ public class UserService {
     @Transactional
     public ApiResponse updateCategories(UserPrincipal userPrincipal, EnumSet<Category> newCategories) {
         Optional<User> userOptional = userRepository.findById(userPrincipal.getId());
-        DefaultAssert.isTrue(userOptional.isPresent(), "유저 아이디 " + userPrincipal.getId() + "를 찾을 수 없습니다.");
+        DefaultAssert.isTrue(userOptional.isPresent(), "유저 아이디 " + userPrincipal.getEmail() + "를 찾을 수 없습니다.");
 
         User user = userOptional.get();
         user.updateCategories(newCategories);
@@ -77,7 +78,7 @@ public class UserService {
 
         ApiResponse apiResponse = ApiResponse.builder()
                 .check(true)
-                .information("아이디 " + userPrincipal.getId() + "의 카테고리를 성공적으로 변경했습니다!")
+                .information("아이디 " + userPrincipal.getEmail() + "의 카테고리를 성공적으로 변경했습니다!")
                 .build();
 
         return apiResponse;
@@ -85,10 +86,18 @@ public class UserService {
 
 
     @Transactional
-    public ApiResponse updatePasswordByEmail(String email, String newPassword) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("입력하신 이메일 " + email + "은 유효하지 않습니다."));
-        user.setPlainPassword(newPassword); 
+    public ResponseEntity<ApiResponse> updatePasswordByEmail(String email, String newPassword) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isEmpty()) {
+            ApiResponse apiResponse = ApiResponse.builder()
+                    .check(false)
+                    .information("유효하지 않은 이메일입니다.")
+                    .build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+        }
+
+        User user = userOptional.get();
+        user.setPlainPassword(newPassword);
         String encodedPassword = passwordEncoder.encode(user.getPlainPassword());
         user.updatePassword(encodedPassword);
         userRepository.save(user);
@@ -98,7 +107,7 @@ public class UserService {
                 .information(email + " 계정의 비밀번호가 성공적으로 변경되었습니다.")
                 .build();
 
-        return apiResponse;
+        return ResponseEntity.ok(apiResponse);
     }
 
 

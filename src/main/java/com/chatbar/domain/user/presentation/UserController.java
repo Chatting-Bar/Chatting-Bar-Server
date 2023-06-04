@@ -84,54 +84,24 @@ public class UserController {
 
 
     @PostMapping("/requestVeri")
-    public ResponseEntity<?> requestVerificationCode(@RequestBody EmailRes emailRes) {
-        try {
-            emailService.sendVerificationCode(emailRes.getEmail());
-            ApiResponse apiResponse = ApiResponse.builder()
-                    .check(true)
-                    .information("이메일이 성공적으로 발송되었습니다!")
-                    .build();
-            return ResponseEntity.ok(apiResponse);
-        } catch (Exception e) {
-            ApiResponse apiResponse = ApiResponse.builder()
-                    .check(false)
-                    .information("이메일을 보내는 데 실패하였습니다")
-                    .build();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
-        }
+    public ResponseEntity<ApiResponse> requestVerificationCode(@RequestBody EmailRes emailRes) {
+        return emailService.sendVerificationCode(emailRes.getEmail());
     }
 
-
     @PostMapping("/verifyCode")
-    public ResponseEntity<?> verifyCode(@RequestBody VerifyRes verifyRes) {
-        boolean codeVerified = emailService.verifyCode(verifyRes.getEmail(), verifyRes.getCode());
-        if (codeVerified) {
-            ApiResponse apiResponse = ApiResponse.builder()
-                    .check(true)
-                    .information("인증에 성공하였습니다!")
-                    .build();
-            return ResponseEntity.ok(apiResponse);
-        } else {
-            ApiResponse apiResponse = ApiResponse.builder()
-                    .check(false)
-                    .information("인증 코드가 올바르지 않습니다.")
-                    .build();
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResponse);
-        }
+    public ResponseEntity<ApiResponse> verifyCode(@RequestBody VerifyRes verifyRes) {
+        return emailService.verifyCode(verifyRes.getEmail(), verifyRes.getCode());
     }
 
 
 
     @PostMapping("/changePassword")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRes changePasswordRes){
+    public ResponseEntity<ApiResponse> changePassword(@RequestBody ChangePasswordRes changePasswordRes) {
         String email = changePasswordRes.getEmail();
         String newPassword = changePasswordRes.getNewPassword();
-        try {
-            ApiResponse apiResponse = userService.updatePasswordByEmail(email, newPassword);
-            return ResponseEntity.ok(apiResponse);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+
+        return userService.updatePasswordByEmail(email, newPassword);
+
     }
 
 
