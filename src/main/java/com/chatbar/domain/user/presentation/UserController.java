@@ -109,9 +109,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-<<<<<<< HEAD
-=======
-*/
+
 
     //ID로 구독자 조회
     @GetMapping("/following/{toUserId}")
@@ -122,6 +120,5 @@ public class UserController {
         return followService.Follow(userPrincipal, toUserId);
     }
 
->>>>>>> bfc0932a9e7a03d1d6b0730d5a9fc0b3ce82c360
 
 }
