@@ -4,6 +4,7 @@ import com.chatbar.domain.common.Category;
 import com.chatbar.domain.email.EmailService;
 import com.chatbar.domain.user.application.FollowService;
 import com.chatbar.domain.user.application.UserService;
+import com.chatbar.domain.user.dto.ChangePasswordRes;
 import com.chatbar.domain.user.dto.EmailRes;
 import com.chatbar.domain.user.dto.VerifyRes;
 import com.chatbar.global.config.security.token.CurrentUser;
@@ -96,11 +97,11 @@ public class UserController {
         }
     }
 
-    /*
+
     @PostMapping("/changePassword")
-    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> payload){
-        String email = payload.get("email");
-        String newPassword = payload.get("newPassword");
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRes changePasswordRes){
+        String email = changePasswordRes.getEmail();
+        String newPassword = changePasswordRes.getNewPassword();
         try {
             userService.updatePasswordByEmail(email, newPassword);
             return ResponseEntity.ok().build();
@@ -108,5 +109,5 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-*/
+
 }
