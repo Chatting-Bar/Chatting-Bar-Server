@@ -90,7 +90,7 @@ public class UserService {
         user.updatePassword(passwordEncoder.encode(newPassword));
     }
 
-    /*
+    
     public void updatePasswordByEmail(String email, String newPassword) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("User with email " + email + " not found"));
@@ -98,5 +98,5 @@ public class UserService {
         userRepository.save(user);
     }
 
-     */
+    
 }
