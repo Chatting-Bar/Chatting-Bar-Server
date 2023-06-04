@@ -1,13 +1,6 @@
 package com.chatbar.domain.chatroom.dto;
 
-import com.chatbar.domain.common.Category;
-import com.chatbar.domain.common.CategorySetConverter;
 import com.chatbar.domain.common.Status;
-import com.chatbar.domain.user.domain.User;
-import jakarta.persistence.Convert;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Lob;
 import lombok.Builder;
 import lombok.Data;
 

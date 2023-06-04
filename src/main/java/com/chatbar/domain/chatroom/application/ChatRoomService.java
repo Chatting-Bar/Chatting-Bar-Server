@@ -162,13 +162,7 @@ public class ChatRoomService {
         Optional<ChatRoom> chatRoom = chatRoomRepository.findById(enterRoomReq.getId());
         DefaultAssert.isTrue(chatRoom.isPresent(), "올바르지 않은 채팅방입니다.");
 
-        //이미 입장해있는 경우 예외처리
-        Optional<UserChatRoom> test = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
-        DefaultAssert.isTrue(test.isEmpty(), "이미 입장해있는 채팅방입니다.");
-
         DefaultAssert.isTrue(!chatRoom.get().isFull(), "채팅방 정원이 가득 찼습니다.");
-        chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() + 1);
-
         DefaultAssert.isTrue(!chatRoom.get().getStatus().equals(Status.DELETE), "닫힌 채팅방입니다.");
 
         //영업시간이 아닌 경우 예외처리
@@ -176,14 +170,25 @@ public class ChatRoomService {
         DefaultAssert.isTrue(!currentTime.isBefore(chatRoom.get().getOpenTime()),"채팅방 오픈시간 전입니다.");
         DefaultAssert.isTrue(!currentTime.isAfter(chatRoom.get().getCloseTime()),"채팅방 마감시간 후입니다.");
 
-        UserChatRoom userChatRoom = UserChatRoom.builder()
-                .user(user.get())
-                .chatRoom(chatRoom.get())
-                .userRole(UserChatRoom.Role.valueOf("GUEST"))  // 방 입장 시 유저는 손님임
-                .isFrozen(false)
-                .build();
+        //이미 입장해있는 경우 예외처리
+        Optional<UserChatRoom> userChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
 
-        userChatRoomRepository.save(userChatRoom);
+        if(userChatRoom.isPresent()) {  //참여 기록이 있는 경우
+            if (userChatRoom.get().getStatus().equals(Status.ACTIVE)) {
+                DefaultAssert.isTrue(false, "이미 입장해있는 채팅방입니다."); //참여중인 채팅방
+            } else {
+                userChatRoom.get().updateStatus(Status.ACTIVE); //퇴장한 채팅방
+            }
+        } else {    //처음 참여하는 채팅방인 경우
+            UserChatRoom newUserChatRoom = UserChatRoom.builder()
+                    .user(user.get())
+                    .chatRoom(chatRoom.get())
+                    .userRole(UserChatRoom.Role.valueOf("GUEST"))  // 방 입장 시 유저는 손님임
+                    .isFrozen(false)
+                    .build();
+            userChatRoomRepository.save(newUserChatRoom);
+        }
+        chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() + 1);
 
         ApiResponse apiResponse = ApiResponse.builder()
                 .check(true)
@@ -205,7 +210,7 @@ public class ChatRoomService {
 
         Optional<UserChatRoom> userChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
         DefaultAssert.isTrue(userChatRoom.isPresent(), "유저채팅방이 올바르지 않습니다.");
-
+        DefaultAssert.isTrue(!userChatRoom.get().getStatus().equals(Status.DELETE), "이미 퇴장한 채팅방입니다.");
         userChatRoom.get().updateStatus(Status.DELETE);
 
         chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() - 1);
@@ -520,6 +525,41 @@ public class ChatRoomService {
         ApiResponse apiResponse = ApiResponse.builder()
                 .check(true)
                 .information(userListRes)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //참여했던 채팅방 기록 조회
+    public ResponseEntity<?> findChatRoomRecord(UserPrincipal userPrincipal) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        List<UserChatRoom> chatRoomList = userChatRoomRepository.findDistinctRoomIdByUserAndStatus(user.get(), Status.DELETE);
+
+        List<RoomListRes> roomListRes = chatRoomList.stream().map(
+                chatRoom -> RoomListRes.builder()
+                        .id(chatRoom.getId())
+                        .name(chatRoom.getChatRoom().getName())
+                        .desc(chatRoom.getChatRoom().getDesc())
+                        .hostId(chatRoom.getChatRoom().getHost().getId())
+                        .hostName(chatRoom.getChatRoom().getHostName())
+                        .open(chatRoom.getChatRoom().getOpenTime())
+                        .close(chatRoom.getChatRoom().getCloseTime())
+                        .current(chatRoom.getChatRoom().getCurrentParticipant())
+                        .max(chatRoom.getChatRoom().getMaxParticipant())
+                        .isFull(chatRoom.getChatRoom().isFull())
+                        .categories(EnumSetToString(chatRoom.getChatRoom().getCategories()))
+                        .isPrivate(chatRoom.getChatRoom().isPrivate())
+                        .password(chatRoom.getChatRoom().getPassword())
+                        .status(chatRoom.getStatus())
+                        .build()
+        ).toList();
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(roomListRes)
                 .build();
 
         return ResponseEntity.ok(apiResponse);
