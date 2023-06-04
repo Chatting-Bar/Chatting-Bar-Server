@@ -30,10 +30,16 @@ public class CustomTokenProviderService {
     private CustomUserDetailsService customUserDetailsService;
 
     public TokenMapping refreshToken(Authentication authentication, String refreshToken) {
+
+        if (!validateToken(refreshToken)) {
+            throw new IllegalArgumentException("Invalid refresh token.");
+        }
+
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Date now = new Date();
 
         Date accessTokenExpiresIn = new Date(now.getTime() + OAuth2Config.getAuth().getAccessTokenExpirationMsec());
+        Date refreshTokenExpiresIn = new Date(now.getTime() + OAuth2Config.getAuth().getRefreshTokenExpirationMsec());
 
         String secretKey = OAuth2Config.getAuth().getTokenSecret();
         if (secretKey == null) {
@@ -49,12 +55,20 @@ public class CustomTokenProviderService {
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
 
+        String newRefreshToken = Jwts.builder()
+                .setSubject(Long.toString(userPrincipal.getId()))
+                .setIssuedAt(new Date())
+                .setExpiration(refreshTokenExpiresIn)
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+
         return TokenMapping.builder()
                 .userEmail(userPrincipal.getEmail())
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(newRefreshToken)
                 .build();
     }
+
 
     public TokenMapping createToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
@@ -90,19 +104,13 @@ public class CustomTokenProviderService {
 
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(Keys.hmacShaKeyFor(OAuth2Config.getAuth().getTokenSecret().getBytes()))
+                .setSigningKey(OAuth2Config.getAuth().getTokenSecret())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        String subject = claims.getSubject();
-        if (subject == null) {
-            throw new IllegalArgumentException("토큰의 Subject이 null입니다.");
-        }
-        return Long.parseLong(subject);
+        return Long.parseLong(claims.getSubject());
     }
-
-
 
     public UsernamePasswordAuthenticationToken getAuthenticationById(String token){
         Long userId = getUserIdFromToken(token);

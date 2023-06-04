@@ -75,6 +75,8 @@ public class UserService {
         userRepository.save(user);
     }
 
+
+
     public UserPrincipal getUserPrincipalByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("User with email " + email + " not found"));

@@ -109,7 +109,6 @@ public class SecurityConfig {
                     .successHandler(oAuth2AuthenticationSuccessHandler)
                     .failureHandler(oAuth2AuthenticationFailureHandler);
 
-
         http.addFilterBefore(customOncePerRequestFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
