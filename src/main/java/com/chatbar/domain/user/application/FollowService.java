@@ -28,6 +28,7 @@ public class FollowService {
 
     //둘 다 DB에 영향을 주므로 @Transactional을 사용
     @Transactional
+    //구독시작
     public ResponseEntity<ApiResponse> startFollowing(UserPrincipal userPrincipal, Long toUserId) {
 
         //유저 확인
@@ -50,15 +51,22 @@ public class FollowService {
 
         followRepository.save(follow);
 
+        FollowRes followRes = FollowRes.builder()
+                .id(follow.getToUser().getId())
+                .nickname(follow.getToUser().getNickname())
+                .email(follow.getToUser().getEmail())
+                .build();
+
         ApiResponse apiResponse = ApiResponse.builder()
                 .check(true)
-                .information(Message.builder().message("구독을 시작합니다.").build())
+                .information(followRes)
                 .build();
 
         return ResponseEntity.ok(apiResponse);
     }
 
     @Transactional
+    //구독 종료
     public ResponseEntity<ApiResponse> stopFollowing(UserPrincipal userPrincipal, Long toUserId) {
 
         //유저 확인
@@ -115,6 +123,35 @@ public class FollowService {
 
         //유저 확인
         Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        User toUser = user.get(); //proxy 문제 해결 코드(먼저객체로 가져와야 지연로딩 가능)
+        List<Follow> followList = followRepository.findAllByToUser(toUser);
+
+        List<FollowRes> followerList = followList.stream().map(
+                follow -> FollowRes.builder()
+                        .id(follow.getFromUser().getId())
+                        .nickname(follow.getFromUser().getNickname())
+                        .email(follow.getFromUser().getEmail())
+                        .build()
+        ).toList();
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(followerList)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //ID에 해당하는 구독자 조회
+    public ResponseEntity<ApiResponse> Follow(UserPrincipal userPrincipal, Long userId) {
+
+        //유저 확인
+        Optional<User> currentUser = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(currentUser.isPresent(), "유저가 올바르지 않습니다.");
+
+        Optional<User> user = userRepository.findById(userId);
         DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
 
         User toUser = user.get(); //proxy 문제 해결 코드(먼저객체로 가져와야 지연로딩 가능)

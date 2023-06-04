@@ -6,6 +6,7 @@ import com.chatbar.domain.chatroom.domain.repository.ChatRoomRepository;
 import com.chatbar.domain.chatroom.domain.repository.UserChatRoomRepository;
 import com.chatbar.domain.chatroom.dto.*;
 import com.chatbar.domain.common.Category;
+import com.chatbar.domain.common.Status;
 import com.chatbar.domain.user.domain.User;
 import com.chatbar.domain.user.domain.repository.UserRepository;
 import com.chatbar.global.DefaultAssert;
@@ -18,9 +19,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
@@ -48,6 +52,13 @@ public class ChatRoomService {
 
         //이미 지나간 시간에 방을 만들려고 하는 경우 예외처리
         DefaultAssert.isTrue(!LocalDateTime.now().isAfter(createRoomReq.getOpenTime()),"현재시간 이후부터 채팅방 오픈이 가능합니다.");
+
+        //채팅 제한시간 24시간
+        Duration duration = Duration.between(createRoomReq.getOpenTime(), createRoomReq.getCloseTime());
+        long daysDifference = duration.toDays();
+        long hoursDifference = duration.toHours() % 24;
+        long minutesDifference = duration.toMinutes() % 60;
+        DefaultAssert.isTrue((daysDifference == 0 && hoursDifference < 24) || (daysDifference == 1 && hoursDifference == 0 && minutesDifference == 0), "채팅방 최대 영업시간은 24시간입니다.");
 
         ChatRoom chatRoom = ChatRoom.builder()
                 .name(createRoomReq.getName())
@@ -82,6 +93,65 @@ public class ChatRoomService {
         return ResponseEntity.ok(apiResponse);
     }
 
+    //방 닫기
+    @Transactional
+    public ResponseEntity<?> closeChatRoom(UserPrincipal userPrincipal, CloseRoomReq closeRoomReq) throws JsonProcessingException {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "올바르지 않은 유저입니다.");
+
+        Optional<ChatRoom> closeRoom = chatRoomRepository.findById(closeRoomReq.getId());
+        DefaultAssert.isTrue(closeRoom.isPresent(), "올바르지 않은 채팅방입니다.");
+
+        //이미 닫은 방인 경우
+        DefaultAssert.isTrue(closeRoom.get().getStatus().equals(Status.ACTIVE),"이미 닫힌 방입니다.");
+
+        List<UserChatRoom> userChatRoomList = userChatRoomRepository.findAllByChatRoom(closeRoom.get());
+        DefaultAssert.isTrue(!userChatRoomList.isEmpty(), "올바르지 않은 유저-채팅방입니다.");
+
+        Optional<UserChatRoom> hostChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), closeRoom.get());
+        DefaultAssert.isTrue(hostChatRoom.isPresent(), "유저 채팅방이 올바르지 않습니다.");
+
+        DefaultAssert.isTrue(hostChatRoom.get().getUserRole().equals(UserChatRoom.Role.HOST), "방장만 방을 닫을 수 있습니다.");
+
+        // ChatRoom의 상태를 DELETE로 변경
+        closeRoom.get().updateStatus(Status.DELETE);
+
+        // UserChatRoom의 상태를 DELETE로 변경
+        for (UserChatRoom userChatRoom : userChatRoomList) {
+            userChatRoom.updateStatus(Status.DELETE);
+        }
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(Message.builder().message("방을 닫았습니다.").build())
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //1분마다 자동으로 검사해서 마감시간이 지난 채팅방들을 닫아주는 메소드
+    @Transactional
+    @Scheduled(fixedRate = 60000)
+    public void autoCloseChatRoom() {
+        System.out.println("<채팅방 닫기 체크>");
+        List<ChatRoom> chatRoomList = chatRoomRepository.findAllByStatus(Status.ACTIVE);
+        if (!chatRoomList.isEmpty()) {
+            for (ChatRoom chatRoom : chatRoomList) {
+                //지금 시간과 마감 시간 비교. 마감시간 < 지금시간이면 방 닫기
+                if (chatRoom.getCloseTime().isBefore(LocalDateTime.now())) {
+                    chatRoom.updateStatus(Status.DELETE);
+                    List<UserChatRoom> userChatRoomList = userChatRoomRepository.findAllByChatRoom(chatRoom);
+                    if(!userChatRoomList.isEmpty()){
+                        for (UserChatRoom userChatRoom : userChatRoomList) {
+                            userChatRoom.updateStatus(Status.DELETE);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     //방 입장
     @Transactional
     public ResponseEntity<?> enterChatRoom(UserPrincipal userPrincipal, EnterRoomReq enterRoomReq) {
@@ -92,12 +162,14 @@ public class ChatRoomService {
         Optional<ChatRoom> chatRoom = chatRoomRepository.findById(enterRoomReq.getId());
         DefaultAssert.isTrue(chatRoom.isPresent(), "올바르지 않은 채팅방입니다.");
 
-        chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() + 1);
-        DefaultAssert.isTrue(!chatRoom.get().isFull(), "채팅방 정원이 가득 찼습니다.");
-
         //이미 입장해있는 경우 예외처리
         Optional<UserChatRoom> test = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
         DefaultAssert.isTrue(test.isEmpty(), "이미 입장해있는 채팅방입니다.");
+
+        DefaultAssert.isTrue(!chatRoom.get().isFull(), "채팅방 정원이 가득 찼습니다.");
+        chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() + 1);
+
+        DefaultAssert.isTrue(!chatRoom.get().getStatus().equals(Status.DELETE), "닫힌 채팅방입니다.");
 
         //영업시간이 아닌 경우 예외처리
         LocalDateTime currentTime = LocalDateTime.now();
@@ -134,7 +206,7 @@ public class ChatRoomService {
         Optional<UserChatRoom> userChatRoom = userChatRoomRepository.findUserChatRoomByUserAndChatRoom(user.get(), chatRoom.get());
         DefaultAssert.isTrue(userChatRoom.isPresent(), "유저채팅방이 올바르지 않습니다.");
 
-        userChatRoomRepository.delete(userChatRoom.get());
+        userChatRoom.get().updateStatus(Status.DELETE);
 
         chatRoom.get().updateCurrentParticipant(chatRoom.get().getCurrentParticipant() - 1);
 
@@ -167,7 +239,7 @@ public class ChatRoomService {
 
         //유저가 방장인 경우에만 강퇴 허용
         if (userChatRoom.get().getUserRole() == UserChatRoom.Role.HOST) {
-            userChatRoomRepository.delete(kickUserChatRoom.get());
+            kickUserChatRoom.get().updateStatus(Status.DELETE);
         }else{
             throw new DefaultException(ErrorCode.INVALID_PARAMETER, "유저가 방장이 아닙니다.");
         }
@@ -216,6 +288,24 @@ public class ChatRoomService {
         return ResponseEntity.ok(apiResponse);
     }
 
+    //1분마다 검사해서 얼려진 후 3분이 지났다면 얼리기 해제해주는 메소드
+    @Transactional
+    @Scheduled(fixedRate = 60000)
+    public void autoCheckFrozen() {
+        //ACTIVE인 UserChatRoom을 찾아서 isFrozen값을 가져온 후 True이고 + 얼려진 시간 이후로 3분이 지났다면 얼리기 해제
+        System.out.println("<얼리기 해제 체크>");
+        List<UserChatRoom> userChatRoomList = userChatRoomRepository.findAllByStatus(Status.ACTIVE);
+        if (!userChatRoomList.isEmpty()) {
+            for (UserChatRoom userChatRoom : userChatRoomList) {
+                if (userChatRoom.isFrozen()) {
+                    if(userChatRoom.getStartFrozenTime().isBefore(LocalDateTime.now().plusMinutes(3))){
+                        userChatRoom.updateIsFrozen(false);
+                    }
+                }
+            }
+        }
+    }
+
     //방 하나 조회
     public ResponseEntity<?> findOneChatRoom(UserPrincipal userPrincipal, Long roomId) {
 
@@ -230,6 +320,7 @@ public class ChatRoomService {
                 .id(findRoom.getId())
                 .name(findRoom.getName())
                 .desc(findRoom.getDesc())
+                .hostId(findRoom.getHost().getId())
                 .hostName(findRoom.getHostName())
                 .open(findRoom.getOpenTime())
                 .close(findRoom.getCloseTime())
@@ -239,6 +330,7 @@ public class ChatRoomService {
                 .categories(EnumSetToString(findRoom.getCategories()))
                 .isPrivate(findRoom.isPrivate())
                 .password(findRoom.getPassword())
+                .status(findRoom.getStatus())
                 .build();
 
         ApiResponse apiResponse = ApiResponse.builder()
@@ -262,6 +354,7 @@ public class ChatRoomService {
                         .id(chatRoom.getId())
                         .name(chatRoom.getName())
                         .desc(chatRoom.getDesc())
+                        .hostId(chatRoom.getHost().getId())
                         .hostName(chatRoom.getHostName())
                         .open(chatRoom.getOpenTime())
                         .close(chatRoom.getCloseTime())
@@ -271,6 +364,7 @@ public class ChatRoomService {
                         .categories(EnumSetToString(chatRoom.getCategories()))
                         .isPrivate(chatRoom.isPrivate())
                         .password(chatRoom.getPassword())
+                        .status(chatRoom.getStatus())
                         .build()
         ).toList();
 
@@ -295,6 +389,7 @@ public class ChatRoomService {
                         .id(chatRoom.getId())
                         .name(chatRoom.getName())
                         .desc(chatRoom.getDesc())
+                        .hostId(chatRoom.getHost().getId())
                         .hostName(chatRoom.getHostName())
                         .open(chatRoom.getOpenTime())
                         .close(chatRoom.getCloseTime())
@@ -304,6 +399,7 @@ public class ChatRoomService {
                         .categories(EnumSetToString(chatRoom.getCategories()))
                         .isPrivate(chatRoom.isPrivate())
                         .password(chatRoom.getPassword())
+                        .status(chatRoom.getStatus())
                         .build()
         ).toList();
 
@@ -331,6 +427,7 @@ public class ChatRoomService {
                         .id(chatRoom.getId())
                         .name(chatRoom.getName())
                         .desc(chatRoom.getDesc())
+                        .hostId(chatRoom.getHost().getId())
                         .hostName(chatRoom.getHostName())
                         .open(chatRoom.getOpenTime())
                         .close(chatRoom.getCloseTime())
@@ -340,6 +437,7 @@ public class ChatRoomService {
                         .categories(EnumSetToString(chatRoom.getCategories()))
                         .isPrivate(chatRoom.isPrivate())
                         .password(chatRoom.getPassword())
+                        .status(chatRoom.getStatus())
                         .build()
         ).toList();
 
@@ -370,6 +468,7 @@ public class ChatRoomService {
                         .id(chatRoom.getId())
                         .name(chatRoom.getName())
                         .desc(chatRoom.getDesc())
+                        .hostId(chatRoom.getHost().getId())
                         .hostName(chatRoom.getHostName())
                         .open(chatRoom.getOpenTime())
                         .close(chatRoom.getCloseTime())
@@ -379,6 +478,7 @@ public class ChatRoomService {
                         .categories(EnumSetToString(chatRoom.getCategories()))
                         .isPrivate(chatRoom.isPrivate())
                         .password(chatRoom.getPassword())
+                        .status(chatRoom.getStatus())
                         .build()
         ).toList();
 
@@ -404,7 +504,8 @@ public class ChatRoomService {
         Optional<ChatRoom> chatRoom = chatRoomRepository.findById(roomId);
         DefaultAssert.isTrue(chatRoom.isPresent(), "채팅방의 ID가 올바르지 않습니다.");
 
-        List<UserChatRoom> userChatRoomList = userChatRoomRepository.findByChatRoom(chatRoom.get());
+        //Active 상태인 유저만 조회
+        List<UserChatRoom> userChatRoomList = userChatRoomRepository.findAllByChatRoomAndStatus(chatRoom.get(), Status.ACTIVE);
 
         List<UserListRes> userListRes = userChatRoomList.stream().map(
                 userChatRoom -> UserListRes.builder()
