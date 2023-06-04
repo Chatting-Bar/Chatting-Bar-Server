@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +26,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     //유저 조회 (조회 기준 - 유저 id)
     public ResponseEntity<?> findUser(UserPrincipal userPrincipal) {
@@ -68,35 +67,41 @@ public class UserService {
 
 
     @Transactional
-    public void updateCategories(UserPrincipal userPrincipal, EnumSet<Category> newCategories){
-        User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new NoSuchElementException("User with id " + userPrincipal.getId() + " not found"));
+    public ApiResponse updateCategories(UserPrincipal userPrincipal, EnumSet<Category> newCategories) {
+        Optional<User> userOptional = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(userOptional.isPresent(), "유저 아이디 " + userPrincipal.getId() + "를 찾을 수 없습니다.");
+
+        User user = userOptional.get();
         user.updateCategories(newCategories);
         userRepository.save(user);
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information("아이디 " + userPrincipal.getId() + "의 카테고리를 성공적으로 변경했습니다!")
+                .build();
+
+        return apiResponse;
     }
 
 
-
-    public UserPrincipal getUserPrincipalByEmail(String email) {
+    @Transactional
+    public ApiResponse updatePasswordByEmail(String email, String newPassword) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("User with email " + email + " not found"));
-        return UserPrincipal.create(user);
-    }
-
-
-    public void updatePassword(UserPrincipal userPrincipal, String newPassword) {
-        User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
-        user.updatePassword(passwordEncoder.encode(newPassword));
-    }
-
-    
-    public void updatePasswordByEmail(String email, String newPassword) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("User with email " + email + " not found"));
-        user.updatePassword(passwordEncoder.encode(newPassword));
+                .orElseThrow(() -> new NoSuchElementException("입력하신 이메일 " + email + "은 유효하지 않습니다."));
+        user.setPlainPassword(newPassword); 
+        String encodedPassword = passwordEncoder.encode(user.getPlainPassword());
+        user.updatePassword(encodedPassword);
         userRepository.save(user);
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(email + " 계정의 비밀번호가 성공적으로 변경되었습니다.")
+                .build();
+
+        return apiResponse;
     }
 
-    
+
+
+
 }

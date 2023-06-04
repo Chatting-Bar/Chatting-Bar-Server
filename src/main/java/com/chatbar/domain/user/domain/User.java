@@ -19,6 +19,7 @@ import java.util.EnumSet;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Where(clause = "status = 'ACTIVE'")
+@Table(name = "users")
 public class User extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,6 +35,10 @@ public class User extends BaseEntity {
     @JsonIgnore
     @NotNull
     private String password;
+
+    @Transient
+    private String plainPassword;
+
 
     @Column(name = "profile_img")
     private String profileImg;
@@ -69,4 +74,8 @@ public class User extends BaseEntity {
     public void updateProfileImg(String profileImg){this.profileImg = profileImg;}
 
     public void updateCategories(EnumSet<Category> newCategories){this.categories = newCategories;}
+
+    public void setPlainPassword(String newPassword) {
+        this.plainPassword = newPassword;
+    }
 }
