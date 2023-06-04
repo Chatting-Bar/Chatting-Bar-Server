@@ -1,4 +1,4 @@
-//package com.chatbar.global.config;
+package com.chatbar.global.config;//package com.chatbar.global.config;
 //
 //import com.amazonaws.auth.AWSCredentials;
 //import com.amazonaws.auth.AWSStaticCredentialsProvider;
