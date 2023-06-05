@@ -68,9 +68,16 @@ public class UserService {
 
 
     @Transactional
-    public ApiResponse updateCategories(UserPrincipal userPrincipal, EnumSet<Category> newCategories) {
+    public ResponseEntity<ApiResponse> updateCategories(UserPrincipal userPrincipal, EnumSet<Category> newCategories) {
         Optional<User> userOptional = userRepository.findById(userPrincipal.getId());
-        DefaultAssert.isTrue(userOptional.isPresent(), "유저 아이디 " + userPrincipal.getEmail() + "를 찾을 수 없습니다.");
+
+        if (userOptional.isEmpty()) {
+            ApiResponse apiResponse = ApiResponse.builder()
+                    .check(false)
+                    .information("아이디를 찾을 수 없습니다.")
+                    .build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+        }
 
         User user = userOptional.get();
         user.updateCategories(newCategories);
@@ -81,7 +88,7 @@ public class UserService {
                 .information("아이디 " + userPrincipal.getEmail() + "의 카테고리를 성공적으로 변경했습니다!")
                 .build();
 
-        return apiResponse;
+        return ResponseEntity.ok(apiResponse);
     }
 
 

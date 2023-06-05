@@ -70,16 +70,8 @@ public class UserController {
 
     //Set Category of User
     @PatchMapping("/categories")
-    public ResponseEntity<?> updateCategories(@CurrentUser UserPrincipal userPrincipal, @RequestBody EnumSet<Category> newCategories) {
-        try {
-            ApiResponse apiResponse = userService.updateCategories(userPrincipal, newCategories);
-            return ResponseEntity.ok(apiResponse);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.builder()
-                    .check(false)
-                    .information(e.getMessage())
-                    .build()); // return 400 Bad Request
-        }
+    public ResponseEntity<ApiResponse> updateCategories(@CurrentUser UserPrincipal userPrincipal, @RequestBody EnumSet<Category> newCategories) {
+        return userService.updateCategories(userPrincipal, newCategories);
     }
 
 
@@ -101,7 +93,6 @@ public class UserController {
         String newPassword = changePasswordRes.getNewPassword();
 
         return userService.updatePasswordByEmail(email, newPassword);
-
     }
 
 
