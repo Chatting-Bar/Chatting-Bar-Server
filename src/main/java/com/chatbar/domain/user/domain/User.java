@@ -35,6 +35,10 @@ public class User extends BaseEntity {
     @NotNull
     private String password;
 
+    @Transient
+    private String plainPassword;
+
+
     @Column(name = "profile_img")
     private String profileImg;
 
@@ -69,4 +73,8 @@ public class User extends BaseEntity {
     public void updateProfileImg(String profileImg){this.profileImg = profileImg;}
 
     public void updateCategories(EnumSet<Category> newCategories){this.categories = newCategories;}
+
+    public void setPlainPassword(String newPassword) {
+        this.plainPassword = newPassword;
+    }
 }
