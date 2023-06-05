@@ -7,7 +7,7 @@ import com.chatbar.domain.auth.dto.SignUpReq;
 import com.chatbar.domain.email.EmailService;
 import com.chatbar.domain.user.application.UserService;
 import com.chatbar.domain.auth.dto.ChangePasswordRes;
-import com.chatbar.domain.auth.dto.EmailRes;
+import com.chatbar.domain.auth.dto.EmailReq;
 import com.chatbar.domain.user.dto.VerifyRes;
 import com.chatbar.global.config.security.token.CurrentUser;
 import com.chatbar.global.config.security.token.UserPrincipal;
@@ -65,8 +65,8 @@ public class AuthController {
     }
 
     @PostMapping("/requestVeri")
-    public ResponseEntity<ApiResponse> requestVerificationCode(@RequestBody EmailRes emailRes) {
-        return emailService.sendVerificationCode(emailRes.getEmail());
+    public ResponseEntity<ApiResponse> requestVerificationCode(@RequestBody EmailReq emailReq) {
+        return emailService.sendVerificationCode(emailReq.getEmail());
     }
 
     @PostMapping("/verifyCode")
@@ -81,6 +81,6 @@ public class AuthController {
         String email = changePasswordRes.getEmail();
         String newPassword = changePasswordRes.getNewPassword();
 
-        return userService.updatePasswordByEmail(email, newPassword);
+        return authService.updatePasswordByEmail(email, newPassword);
     }
 }

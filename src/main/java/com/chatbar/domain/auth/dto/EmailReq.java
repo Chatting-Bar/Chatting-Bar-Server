@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class EmailRes {
+public class EmailReq {
 
     private String email;
 

@@ -11,6 +11,7 @@ import com.chatbar.global.payload.ApiResponse;
 import com.chatbar.global.payload.Message;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,6 +38,9 @@ public class AuthService {
     private final TokenRepository tokenRepository;
 
     private final CustomTokenProviderService customTokenProviderService;
+
+
+
 
     //회원가입
     @Transactional
@@ -144,4 +148,29 @@ public class AuthService {
         return ResponseEntity.ok(apiResponse);
     }
 
+
+    @Transactional
+    public ResponseEntity<ApiResponse> updatePasswordByEmail(String email, String newPassword) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isEmpty()) {
+            ApiResponse apiResponse = ApiResponse.builder()
+                    .check(false)
+                    .information("유효하지 않은 이메일입니다.")
+                    .build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+        }
+
+        User user = userOptional.get();
+        user.setPlainPassword(newPassword);
+        String encodedPassword = passwordEncoder.encode(user.getPlainPassword());
+        user.updatePassword(encodedPassword);
+        userRepository.save(user);
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(email + " 계정의 비밀번호가 성공적으로 변경되었습니다.")
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
 }
