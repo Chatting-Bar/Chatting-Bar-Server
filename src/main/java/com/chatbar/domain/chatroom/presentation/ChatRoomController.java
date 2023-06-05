@@ -111,6 +111,14 @@ public class ChatRoomController {
         return chatRoomService.findRecommendedChatRoom(userPrincipal);
     }
 
+    //방 조회(구독한 유저들)
+    @GetMapping("/follow")
+    public ResponseEntity<?> findFollowingUserChatRoom(
+            @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return chatRoomService.findFollowingUserChatRoom(userPrincipal);
+    }
+
     //방 검색
     @GetMapping("/search/{search}")
     public ResponseEntity<?> searchChatRoom(

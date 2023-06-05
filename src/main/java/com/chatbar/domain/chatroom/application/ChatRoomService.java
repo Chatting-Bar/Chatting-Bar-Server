@@ -7,8 +7,11 @@ import com.chatbar.domain.chatroom.domain.repository.UserChatRoomRepository;
 import com.chatbar.domain.chatroom.dto.*;
 import com.chatbar.domain.common.Category;
 import com.chatbar.domain.common.Status;
+import com.chatbar.domain.user.domain.Follow;
 import com.chatbar.domain.user.domain.User;
+import com.chatbar.domain.user.domain.repository.FollowRepository;
 import com.chatbar.domain.user.domain.repository.UserRepository;
+import com.chatbar.domain.user.dto.FollowRes;
 import com.chatbar.global.DefaultAssert;
 import com.chatbar.global.config.security.token.UserPrincipal;
 import com.chatbar.global.error.DefaultException;
@@ -39,6 +42,8 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
 
     private final UserChatRoomRepository userChatRoomRepository;
+
+    private final FollowRepository followRepository;
 
     //방 만들기
     @Transactional
@@ -431,6 +436,51 @@ public class ChatRoomService {
 
         //user의 카테고리와 비교해 같은 카테고리가 많은 순  정렬
         chatRoomList.sort(Comparator.comparingInt(entity -> calculateSimilarity(user.get().getCategories(), entity.getCategories())));
+
+        List<RoomListRes> roomListRes = chatRoomList.stream().map(
+                chatRoom -> RoomListRes.builder()
+                        .id(chatRoom.getId())
+                        .name(chatRoom.getName())
+                        .desc(chatRoom.getDesc())
+                        .hostId(chatRoom.getHost().getId())
+                        .hostName(chatRoom.getHostName())
+                        .open(chatRoom.getOpenTime())
+                        .close(chatRoom.getCloseTime())
+                        .current(chatRoom.getCurrentParticipant())
+                        .max(chatRoom.getMaxParticipant())
+                        .isFull(chatRoom.isFull())
+                        .categories(EnumSetToString(chatRoom.getCategories()))
+                        .isPrivate(chatRoom.isPrivate())
+                        .password(chatRoom.getPassword())
+                        .status(chatRoom.getStatus())
+                        .build()
+        ).toList();
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .check(true)
+                .information(roomListRes)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    //방 조회 (구독하는 사람들이 올린 방들)
+    public ResponseEntity<?> findFollowingUserChatRoom(UserPrincipal userPrincipal) {
+
+        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        DefaultAssert.isTrue(user.isPresent(), "유저가 올바르지 않습니다.");
+
+        User fromUser = user.get(); //proxy 문제 해결 코드(먼저객체로 가져와야 지연로딩 가능)
+        List<Follow> followList = followRepository.findAllByFromUser(fromUser);
+
+        // 팔로우한 유저들이 만든 모든 ChatRoom 조회
+        List<ChatRoom> chatRoomList = new ArrayList<>();
+
+        for (Follow follow : followList) {
+            User followedUser = follow.getToUser();
+            List<ChatRoom> followUserChatRooms = chatRoomRepository.findAllByHost(followedUser);
+            chatRoomList.addAll(followUserChatRooms);
+        }
 
         List<RoomListRes> roomListRes = chatRoomList.stream().map(
                 chatRoom -> RoomListRes.builder()
