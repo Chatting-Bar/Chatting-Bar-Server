@@ -1,4 +1,4 @@
-package com.chatbar.domain.user.dto;
+package com.chatbar.domain.auth.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

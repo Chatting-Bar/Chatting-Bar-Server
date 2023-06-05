@@ -27,7 +27,6 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     //유저 조회 (조회 기준 - 유저 id)
     public ResponseEntity<?> findUser(UserPrincipal userPrincipal) {
@@ -92,30 +91,6 @@ public class UserService {
     }
 
 
-    @Transactional
-    public ResponseEntity<ApiResponse> updatePasswordByEmail(String email, String newPassword) {
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            ApiResponse apiResponse = ApiResponse.builder()
-                    .check(false)
-                    .information("유효하지 않은 이메일입니다.")
-                    .build();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
-        }
-
-        User user = userOptional.get();
-        user.setPlainPassword(newPassword);
-        String encodedPassword = passwordEncoder.encode(user.getPlainPassword());
-        user.updatePassword(encodedPassword);
-        userRepository.save(user);
-
-        ApiResponse apiResponse = ApiResponse.builder()
-                .check(true)
-                .information(email + " 계정의 비밀번호가 성공적으로 변경되었습니다.")
-                .build();
-
-        return ResponseEntity.ok(apiResponse);
-    }
 
 
 

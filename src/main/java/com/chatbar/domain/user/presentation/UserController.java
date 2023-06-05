@@ -1,23 +1,16 @@
 package com.chatbar.domain.user.presentation;
 
 import com.chatbar.domain.common.Category;
-import com.chatbar.domain.email.EmailService;
 import com.chatbar.domain.user.application.FollowService;
 import com.chatbar.domain.user.application.UserService;
-import com.chatbar.domain.user.dto.ChangePasswordRes;
-import com.chatbar.domain.user.dto.EmailRes;
-import com.chatbar.domain.user.dto.VerifyRes;
 import com.chatbar.global.config.security.token.CurrentUser;
 import com.chatbar.global.config.security.token.UserPrincipal;
 import com.chatbar.global.payload.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.EnumSet;
-import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,7 +20,7 @@ public class UserController {
     private final UserService userService;
     private final FollowService followService;
 
-    private final EmailService emailService;
+
 
     //유저 조회
     @GetMapping
@@ -75,25 +68,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/requestVeri")
-    public ResponseEntity<ApiResponse> requestVerificationCode(@RequestBody EmailRes emailRes) {
-        return emailService.sendVerificationCode(emailRes.getEmail());
-    }
 
-    @PostMapping("/verifyCode")
-    public ResponseEntity<ApiResponse> verifyCode(@RequestBody VerifyRes verifyRes) {
-        return emailService.verifyCode(verifyRes.getEmail(), verifyRes.getCode());
-    }
-
-
-
-    @PostMapping("/changePassword")
-    public ResponseEntity<ApiResponse> changePassword(@RequestBody ChangePasswordRes changePasswordRes) {
-        String email = changePasswordRes.getEmail();
-        String newPassword = changePasswordRes.getNewPassword();
-
-        return userService.updatePasswordByEmail(email, newPassword);
-    }
 
 
 
