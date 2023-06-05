@@ -1,23 +1,16 @@
 package com.chatbar.domain.user.presentation;
 
 import com.chatbar.domain.common.Category;
-import com.chatbar.domain.email.EmailService;
 import com.chatbar.domain.user.application.FollowService;
 import com.chatbar.domain.user.application.UserService;
-import com.chatbar.domain.user.dto.ChangePasswordRes;
-import com.chatbar.domain.user.dto.EmailRes;
-import com.chatbar.domain.user.dto.VerifyRes;
 import com.chatbar.global.config.security.token.CurrentUser;
 import com.chatbar.global.config.security.token.UserPrincipal;
 import com.chatbar.global.payload.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.EnumSet;
-import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequiredArgsConstructor
