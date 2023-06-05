@@ -27,7 +27,7 @@ public class UserController {
     private final UserService userService;
     private final FollowService followService;
 
-    private final EmailService emailService;
+
 
     //유저 조회
     @GetMapping
@@ -75,25 +75,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/requestVeri")
-    public ResponseEntity<ApiResponse> requestVerificationCode(@RequestBody EmailRes emailRes) {
-        return emailService.sendVerificationCode(emailRes.getEmail());
-    }
 
-    @PostMapping("/verifyCode")
-    public ResponseEntity<ApiResponse> verifyCode(@RequestBody VerifyRes verifyRes) {
-        return emailService.verifyCode(verifyRes.getEmail(), verifyRes.getCode());
-    }
-
-
-
-    @PostMapping("/changePassword")
-    public ResponseEntity<ApiResponse> changePassword(@RequestBody ChangePasswordRes changePasswordRes) {
-        String email = changePasswordRes.getEmail();
-        String newPassword = changePasswordRes.getNewPassword();
-
-        return userService.updatePasswordByEmail(email, newPassword);
-    }
 
 
 
