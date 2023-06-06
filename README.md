@@ -1,33 +1,14 @@
-# 2023-1 소프트웨어공학 채팅마차 서버
+<p align="center">
+  <img src="https://avatars.githubusercontent.com/u/129783133?s=200&v=4" width="300"/>
+</p>
+<h1 align="center"> 🏮 채팅마차 🏮 </h1>
+</br>
+<p align="middle">텍스트 기반 스트리밍 어플리케이션, 채팅마차입니다!</p>
+</br>
 
 <br>
 
-## 🌱 Pull Requests Rule 
-**Title**: ex) [Feat]: 채팅 기능 추가 , [FIX]: 오류 수정
-
-**Reviewers(PR을 리뷰해 줄 팀원)**: 파트 내 본인 외 1명
-
-**Assignees(PR 담당자)**: 본인
-
-**Labels**: Commit Message Convention에 따름
-
-<br>
-
-## ✔ Commit Message Convention
-
-[FEAT]: 새로운 기능 추가
-
-[FIX]: 버그, 오류 수정
-
-[DOCS]: README 등의 문서 수정
-
-[REFACTOR]: 전면 수정(코드 리펙토링)
-
-[TEST]: 테스트 코드 추가 및 수정
-
-<br>
-
-## 🍀 Members
+## 팀원  👨‍👨‍👧‍👧👩‍👦‍
 <table>
   <tbody>
     <tr>
@@ -75,5 +56,42 @@
   <img src="https://img.shields.io/badge/figma-%23F24E1E.svg?style=for-the-badge&logo=figma&logoColor=white">
   <img src="https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white">
   <img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white">
-
 </div>
+<br>
+<br>
+
+<h2>📀 ERD </h2>
+<img align=center width="590" alt="ERD" src="https://github.com/Chatting-Bar/Chatting-Bar-Server/assets/97265630/31f2564d-def3-427f-ab3a-7661ff4b6a5c">
+<br>
+
+<h2>⭐️ API </h2>
+[API 명세서]( https://www.notion.so/API-5b5b7308681b4c1d8f43137d7be66ae7?pvs=4 )
+<br>
+<br>
+
+
+
+## 🌱 Pull Requests Rule 
+**Title**: ex) [Feat]: 채팅 기능 추가 , [FIX]: 오류 수정
+
+**Reviewers(PR을 리뷰해 줄 팀원)**: 파트 내 본인 외 1명
+
+**Assignees(PR 담당자)**: 본인
+
+**Labels**: Commit Message Convention에 따름
+
+<br>
+
+## ✔ Commit Message Convention
+
+[FEAT]: 새로운 기능 추가
+
+[FIX]: 버그, 오류 수정
+
+[DOCS]: README 등의 문서 수정
+
+[REFACTOR]: 전면 수정(코드 리펙토링)
+
+[TEST]: 테스트 코드 추가 및 수정
+
+
