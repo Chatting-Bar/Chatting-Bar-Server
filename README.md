@@ -65,10 +65,9 @@
 <br>
 
 <h2>⭐️ API </h2>
-[API 명세서]( https://www.notion.so/API-5b5b7308681b4c1d8f43137d7be66ae7?pvs=4 )
+[API 명세서](https://www.notion.so/API-5b5b7308681b4c1d8f43137d7be66ae7?pvs=4)
 <br>
 <br>
-
 
 
 ## 🌱 Pull Requests Rule 
@@ -82,7 +81,7 @@
 
 <br>
 
-## ✔ Commit Message Convention
+## ✅ Commit Message Convention
 
 [FEAT]: 새로운 기능 추가
 
@@ -94,4 +93,21 @@
 
 [TEST]: 테스트 코드 추가 및 수정
 
+<br>
+
+## 🍃 Branch Strategy
+- main
+    - 배포 이력 관리 목적
+- develop
+    - feature 병합용 브랜치
+    - 배포 전 병합 브랜치
+- feature
+    - develop 브랜치를 베이스로 기능별로 feature 브랜치 생성해 개발
+- fix
+    - 수정용 브랜치
+- test
+    - 테스트가 필요한 코드용 브랜치
+- hotfix
+    - 배포 후 버그 발생 시 버그 수정 
+<br>
 
