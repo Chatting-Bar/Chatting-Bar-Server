@@ -69,6 +69,138 @@
 <br>
 <br>
 
+## Project Structure
+```bash
+.
+├── java
+│   └── com
+│       └── chatbar
+│           ├── ChatbarApplication.java
+│           ├── domain
+│           │   ├── auth
+│           │   │   ├── application
+│           │   │   │   ├── AuthService.java
+│           │   │   │   ├── CustomDefaultOAuth2UserService.java
+│           │   │   │   ├── CustomTokenProviderService.java
+│           │   │   │   └── CustomUserDetailsService.java
+│           │   │   ├── domain
+│           │   │   │   ├── Token.java
+│           │   │   │   └── repository
+│           │   │   │       ├── CustomAuthorizationRequestRepository.java
+│           │   │   │       └── TokenRepository.java
+│           │   │   ├── dto
+│           │   │   │   ├── AuthRes.java
+│           │   │   │   ├── RefreshTokenReq.java
+│           │   │   │   ├── SignInReq.java
+│           │   │   │   ├── SignUpReq.java
+│           │   │   │   └── TokenMapping.java
+│           │   │   └── presentation
+│           │   │       └── AuthController.java
+│           │   ├── chatroom
+│           │   │   ├── application
+│           │   │   │   └── ChatRoomService.java
+│           │   │   ├── domain
+│           │   │   │   ├── ChatRoom.java
+│           │   │   │   ├── UserChatRoom.java
+│           │   │   │   └── repository
+│           │   │   │       ├── ChatRoomRepository.java
+│           │   │   │       └── UserChatRoomRepository.java
+│           │   │   ├── dto
+│           │   │   │   ├── CloseRoomReq.java
+│           │   │   │   ├── CreateRoomReq.java
+│           │   │   │   ├── CreateRoomRes.java
+│           │   │   │   ├── EnterRoomReq.java
+│           │   │   │   ├── ResultRoomListRes.java
+│           │   │   │   ├── RoomListRes.java
+│           │   │   │   └── UserListRes.java
+│           │   │   └── presentation
+│           │   │       └── ChatRoomController.java
+│           │   ├── common
+│           │   │   ├── BaseEntity.java
+│           │   │   ├── Category.java
+│           │   │   ├── CategorySetConverter.java
+│           │   │   └── Status.java
+│           │   ├── email
+│           │   │   ├── EmailService.java
+│           │   │   └── VerificationCode.java
+│           │   ├── message
+│           │   │   ├── application
+│           │   │   │   └── MessageService.java
+│           │   │   ├── domain
+│           │   │   │   ├── Message.java
+│           │   │   │   └── repository
+│           │   │   │       └── MessageRepository.java
+│           │   │   ├── dto
+│           │   │   │   └── MessageDto.java
+│           │   │   └── presentation
+│           │   │       └── MessageController.java
+│           │   └── user
+│           │       ├── application
+│           │       │   ├── FollowService.java
+│           │       │   └── UserService.java
+│           │       ├── domain
+│           │       │   ├── Follow.java
+│           │       │   ├── Provider.java
+│           │       │   ├── Role.java
+│           │       │   ├── User.java
+│           │       │   └── repository
+│           │       │       ├── FollowRepository.java
+│           │       │       └── UserRepository.java
+│           │       ├── dto
+│           │       │   ├── ChangePasswordRes.java
+│           │       │   ├── EmailRes.java
+│           │       │   ├── FollowRes.java
+│           │       │   ├── UserRes.java
+│           │       │   └── VerifyRes.java
+│           │       └── presentation
+│           │           └── UserController.java
+│           └── global
+│               ├── DefaultAssert.java
+│               ├── config
+│               │   ├── JpaConfig.java
+│               │   ├── S3Config.java
+│               │   ├── TomcatWebCustomConfig.java
+│               │   ├── YamlPropertySourceFactory.java
+│               │   └── security
+│               │       ├── OAuth2Config.java
+│               │       ├── SecurityConfig.java
+│               │       ├── WebMvcConfig.java
+│               │       ├── handler
+│               │       │   ├── CustomSimpleUrlAuthenticationFailureHandler.java
+│               │       │   └── CustomSimpleUrlAuthenticationSuccessHandler.java
+│               │       ├── oauth
+│               │       │   ├── OAuth2UserInfo.java
+│               │       │   ├── OAuth2UserInfoFactory.java
+│               │       │   └── company
+│               │       │       ├── Google.java
+│               │       │       └── Naver.java
+│               │       ├── token
+│               │       │   ├── CurrentUser.java
+│               │       │   ├── CustomAuthenticationEntryPoint.java
+│               │       │   ├── CustomOncePerRequestFilter.java
+│               │       │   └── UserPrincipal.java
+│               │       └── util
+│               │           └── CustomCookie.java
+│               ├── error
+│               │   ├── ApiControllerAdvice.java
+│               │   ├── DefaultAuthenticationException.java
+│               │   ├── DefaultException.java
+│               │   ├── DefaultNullPointerException.java
+│               │   └── InvalidParameterException.java
+│               ├── infrastructure
+│               │   └── S3Uploader.java
+│               └── payload
+│                   ├── ApiResponse.java
+│                   ├── ErrorCode.java
+│                   ├── ErrorResponse.java
+│                   └── Message.java
+└── resources
+    ├── application.yml
+    ├── database
+    │   └── application-database.yml
+    └── oauth
+        └── application-oauth.yml
+```
 
 ## 🌱 Pull Requests Rule 
 **Title**: ex) [Feat]: 채팅 기능 추가 , [FIX]: 오류 수정
